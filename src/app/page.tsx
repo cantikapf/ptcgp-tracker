@@ -202,7 +202,7 @@ export default function Home() {
       if (res.ok) {
         setSimResult(data);
       } else {
-        alert("Simulasi gagal: " + data.error);
+        alert("Simulation failed: " + data.error);
       }
     } catch (err) {
       console.error(err);
@@ -241,10 +241,10 @@ export default function Home() {
         </div>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <button className="btn-secondary" onClick={() => setShowAiModal(true)}>
-            <FaRobot /> Minta AI Buatkan Deck
+            <FaRobot /> Ask AI for Deck
           </button>
           <button className="btn-secondary" onClick={handleSyncMeta} disabled={isSyncingMeta}>
-            <FaTrophy className={isSyncingMeta ? 'spin' : ''} /> {isSyncingMeta ? 'Syncing Meta...' : 'Sync Meta Deck'}
+            <FaTrophy className={isSyncingMeta ? 'spin' : ''} /> {isSyncingMeta ? 'Syncing Meta...' : 'Sync Meta Decks'}
           </button>
           <button className="btn-primary" onClick={handleSync} disabled={isSyncing}>
             <FaSync className={isSyncing ? 'spin' : ''} /> {isSyncing ? 'Syncing...' : 'Sync Data'}
@@ -273,7 +273,7 @@ export default function Home() {
                 onClick={() => setShowMetaDecks(!showMetaDecks)}
                 style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid var(--glass-border)', color: '#fff', cursor: 'pointer', padding: '0.5rem 1rem', borderRadius: '8px' }}
               >
-                {showMetaDecks ? 'Sembunyikan' : 'Tampilkan'}
+                {showMetaDecks ? 'Hide' : 'Show'}
               </button>
             </div>
           </div>
@@ -303,7 +303,7 @@ export default function Home() {
                   style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
                   onClick={() => setSelectedMetaDeck(deck)}
                 >
-                  <FaList /> Lihat Decklist
+                  <FaList /> View Decklist
                 </button>
               </div>
             ))}
@@ -316,7 +316,7 @@ export default function Home() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
         <h2 style={{ fontSize: '2rem', margin: 0 }}>
-          Koleksi Anda ({ownedCardsList.length} Kartu)
+          Your Collection ({ownedCardsList.length} Cards)
         </h2>
         <select 
           value={sortBy} 
@@ -340,7 +340,7 @@ export default function Home() {
           {(() => {
             // Group cards by expansionName
             const grouped = ownedCardsList.reduce((acc, card) => {
-              const set = card.expansionName || 'Promo / Lainnya';
+              const set = card.expansionName || 'Promo / Others';
               if (!acc[set]) acc[set] = [];
               acc[set].push(card);
               return acc;
@@ -354,7 +354,7 @@ export default function Home() {
                     style={{ fontSize: '1.4rem', marginBottom: '1rem', color: 'var(--accent-secondary)', display: 'flex', justifyContent: 'space-between', cursor: 'pointer', background: 'rgba(0,0,0,0.3)', padding: '0.8rem 1rem', borderRadius: '8px' }}
                     onClick={() => setExpandedSets(prev => ({ ...prev, [setName]: !isExpanded }))}
                   >
-                    <span>{setName} ({setCards.length} Kartu)</span>
+                    <span>{setName} ({setCards.length} Cards)</span>
                     <span>{isExpanded ? '▼' : '▶'}</span>
                   </h3>
                   
@@ -428,12 +428,12 @@ export default function Home() {
               {!generatedDeck ? (
                 <>
                   <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-                    Deskripsikan deck yang ingin Anda buat (contoh: &quot;Deck cepat menggunakan Pikachu&quot; atau &quot;Deck racun dengan Arbok&quot;).
+                    Describe the deck you want to build (e.g., &quot;Fast deck using Pikachu&quot; or &quot;Poison deck with Arbok&quot;).
                   </p>
                   <textarea 
                     value={aiPrompt}
                     onChange={(e) => setAiPrompt(e.target.value)}
-                    placeholder="Saya ingin membuat deck..."
+                    placeholder="I want to build a deck..."
                     style={{ width: '100%', height: '100px', padding: '1rem', borderRadius: '8px', background: 'rgba(0,0,0,0.5)', color: '#fff', border: '1px solid var(--glass-border)', marginBottom: '1rem', fontFamily: 'inherit' }}
                   />
                   <button 
@@ -442,7 +442,7 @@ export default function Home() {
                     disabled={isGenerating || !aiPrompt}
                     style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }}
                   >
-                    {isGenerating ? 'Menganalisis koleksi...' : 'Buat Deck Sekarang!'}
+                    {isGenerating ? 'Analyzing collection...' : 'Generate Deck Now!'}
                   </button>
                 </>
               ) : (
@@ -487,7 +487,7 @@ export default function Home() {
                     </motion.div>
                   )}
 
-                  <h4 style={{ marginBottom: '1rem' }}>Daftar Kartu:</h4>
+                  <h4 style={{ marginBottom: '1rem' }}>Card List:</h4>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '1rem' }}>
                     {generatedDeck.cards.map((c: GeneratedCard, idx: number) => {
                       const fullCard = cards.find(oc => oc.id === c.id);
@@ -505,7 +505,7 @@ export default function Home() {
                   </div>
 
                   <button className="btn-secondary" style={{ width: '100%', marginTop: '1.5rem' }} onClick={() => setGeneratedDeck(null)}>
-                    Buat Deck Lain
+                    Create Another Deck
                   </button>
                 </div>
               )}
@@ -540,14 +540,14 @@ export default function Home() {
               </div>
               <h2 style={{ color: '#fff', marginBottom: '0.5rem', textAlign: 'center' }}>{selectedCard.name}</h2>
               <p style={{ color: 'var(--text-secondary)', textAlign: 'center' }}>
-                Koleksi: <strong>{selectedCard.quantity}</strong> lembar
+                Owned: <strong>{selectedCard.quantity}</strong> copies
               </p>
               <button 
                 className="btn-secondary" 
                 style={{ marginTop: '2rem', padding: '0.8rem 2rem', borderRadius: '30px' }}
                 onClick={() => setSelectedCard(null)}
               >
-                Tutup
+                Close
               </button>
             </motion.div>
           </motion.div>
@@ -596,7 +596,7 @@ export default function Home() {
                 <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>{selectedMetaDeck.strategy}</p>
               </div>
 
-              <h4 style={{ marginBottom: '1rem' }}>Tracker Kartu (Kebutuhan vs Koleksi Anda):</h4>
+              <h4 style={{ marginBottom: '1rem' }}>Card Tracker (Required vs Owned):</h4>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
                 {(() => {
                   // Calculate required cards

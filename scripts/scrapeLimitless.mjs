@@ -93,7 +93,7 @@ async function scrapeLimitlessAPI() {
       name: deck.name,
       tier: tier,
       winRate: calcWinRate({ wins: deck.wins, losses: deck.losses, ties: deck.ties }),
-      strategy: `Sebuah deck ${deck.name} yang difokuskan pada kartu andalan mereka. Peringkat: #${index + 1} di Limitless.`,
+      strategy: `A  deck focused on its signature cards. Rank: # on Limitless.`,
       cards: deck.bestList
     };
   });

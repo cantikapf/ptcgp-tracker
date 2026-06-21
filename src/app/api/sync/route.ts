@@ -94,7 +94,7 @@ export async function POST(request: Request) {
         const pageContent = await page.evaluate(() => document.body.innerText);
         console.log('Page content preview:', pageContent.substring(0, 500));
         return NextResponse.json({ 
-          error: 'Gagal mengambil data dari Pokemon Zone. Situs mungkin sedang maintenance atau memblokir akses. Coba lagi nanti.' 
+          error: 'Failed to fetch data from Pokemon Zone. The site might be under maintenance or blocking access. Try again later.' 
         }, { status: 500 });
       }
 
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
         parsed = JSON.parse(apiData);
       } catch {
         console.error('Failed to parse API data. Raw:', apiData?.substring(0, 500));
-        return NextResponse.json({ error: 'Format data dari Pokemon Zone tidak valid. Coba lagi nanti.' }, { status: 500 });
+        return NextResponse.json({ error: 'Invalid data format from Pokemon Zone. Try again later.' }, { status: 500 });
       }
 
       userCards = parsed?.data?.cards;
@@ -118,7 +118,7 @@ export async function POST(request: Request) {
           userCards = parsed;
         } else {
           console.error('Unexpected data structure:', JSON.stringify(parsed).substring(0, 500));
-          return NextResponse.json({ error: 'Format data tidak dikenali dari Pokemon Zone' }, { status: 400 });
+          return NextResponse.json({ error: 'Unrecognized data format from Pokemon Zone' }, { status: 400 });
         }
       }
 
