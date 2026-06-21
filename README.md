@@ -29,6 +29,15 @@
 
 ---
 
+## 🌐 Live Demo
+
+👉 **[Try the Live Demo Here](https://ptcgp-tracker-tau.vercel.app/)**
+
+> [!NOTE]  
+> The live demo serves as a visual showcase of the UI and collection tracking features using sample data. **The AI Deck Builder and Battle Simulator features are disabled in the public demo** as they require configuring your own personal AI API keys (Gemini/Groq/OpenRouter). To use the AI features, please clone the repository and run it locally with your own API keys.
+
+---
+
 ## ✨ Features
 
 ### 🔄 1-Click Auto Sync
