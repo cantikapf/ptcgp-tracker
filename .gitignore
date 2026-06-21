@@ -47,3 +47,4 @@ next-env.d.ts
 /data/mine.json
 /scratch/
 /data/raw/mine.json
+!ptcgp_tracker.sqlite
