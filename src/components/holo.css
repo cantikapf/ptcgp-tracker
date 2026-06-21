@@ -1,0 +1,84 @@
+.holo-card-container {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  width: 100%;
+  height: 100%;
+}
+
+.holo-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  transition: transform 0.1s ease-out;
+  transform: rotateX(var(--rotate-x, 0deg)) rotateY(var(--rotate-y, 0deg));
+  transform-style: preserve-3d;
+}
+
+/* Base image */
+.holo-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Glare effect (white reflection following the mouse) */
+.holo-card .glare {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    farthest-corner circle at var(--pointer-x, 50%) var(--pointer-y, 50%),
+    rgba(255, 255, 255, 0.8) 0%,
+    rgba(255, 255, 255, 0.2) 30%,
+    rgba(255, 255, 255, 0) 80%
+  );
+  mix-blend-mode: overlay;
+  opacity: var(--card-opacity, 0);
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+/* Shine effect (rainbow foil following the mouse) */
+.holo-card.holo-enabled .shine {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    115deg,
+    transparent 20%,
+    rgba(255, 100, 100, 0.4) 30%,
+    rgba(100, 255, 100, 0.4) 45%,
+    rgba(100, 100, 255, 0.4) 60%,
+    rgba(255, 100, 255, 0.4) 75%,
+    transparent 85%
+  );
+  background-size: 200% 200%;
+  background-position: var(--pointer-x, 50%) var(--pointer-y, 50%);
+  mix-blend-mode: color-dodge;
+  opacity: var(--card-opacity, 0);
+  transition: opacity 0.3s;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Cosmos foil pattern */
+.holo-card.holo-cosmos .shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url('https://simeydotme.github.io/pokemon-cards-css/img/cosmos-bg.webp');
+  background-size: cover;
+  mix-blend-mode: color-dodge;
+  opacity: calc(var(--card-opacity, 0) * 0.7);
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+/* Fallback for empty cards or un-owned cards */
+.holo-card.grayscale img {
+  filter: grayscale(100%) brightness(0.5);
+}
