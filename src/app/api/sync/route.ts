@@ -137,8 +137,30 @@ export async function POST(request: Request) {
       }
     }
 
-    const { data: allCards, error: fetchError } = await supabase.from('cards').select('*').limit(5000);
-    if (fetchError) throw fetchError;
+    let allCards: any[] = [];
+    let hasMoreCards = true;
+    let pageNum = 0;
+    const cardsPageSize = 1000;
+
+    while (hasMoreCards) {
+      const { data, error: fetchError } = await supabase
+        .from('cards')
+        .select('*')
+        .range(pageNum * cardsPageSize, (pageNum + 1) * cardsPageSize - 1);
+      
+      if (fetchError) throw fetchError;
+
+      if (data && data.length > 0) {
+        allCards = [...allCards, ...data];
+        if (data.length < cardsPageSize) {
+          hasMoreCards = false;
+        } else {
+          pageNum++;
+        }
+      } else {
+        hasMoreCards = false;
+      }
+    }
 
     let updatedCount = 0;
     for(const card of allCards) {
