@@ -96,11 +96,13 @@ export interface DeckTrackerContextType {
   generateDeck: () => Promise<void>;
   simResult: SimResult | null;
   isSimulating: boolean;
-  simulateDeck: () => Promise<void>;
+  simulateDeck: (localWinRate?: number) => Promise<void>;
 
   // Modal Visibility States
   showAiModal: boolean;
   setShowAiModal: (show: boolean) => void;
+  showSavedDecksModal: boolean;
+  setShowSavedDecksModal: (show: boolean) => void;
   selectedCard: CardData | null;
   setSelectedCard: (card: CardData | null) => void;
   selectedMetaDeck: TopDeck | null;
@@ -122,6 +124,7 @@ export function DeckTrackerProvider({ children }: { children: ReactNode }) {
 
   // AI Modal States
   const [showAiModal, setShowAiModal] = useState(false);
+  const [showSavedDecksModal, setShowSavedDecksModal] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedDeck, setGeneratedDeck] = useState<GeneratedDeck | null>(null);
@@ -236,7 +239,7 @@ export function DeckTrackerProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const simulateDeck = async () => {
+  const simulateDeck = async (localWinRate?: number) => {
     if (!generatedDeck) return;
     setIsSimulating(true);
     setSimResult(null);
@@ -247,6 +250,7 @@ export function DeckTrackerProvider({ children }: { children: ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           deckName: generatedDeck.name,
+          localWinRate: localWinRate,
           deckCards: generatedDeck.cards.map((c: GeneratedCard) => {
             const foundCard = cards.find((card) => card.id === c.id);
             return {
@@ -325,6 +329,8 @@ export function DeckTrackerProvider({ children }: { children: ReactNode }) {
         simulateDeck,
         showAiModal,
         setShowAiModal,
+        showSavedDecksModal,
+        setShowSavedDecksModal,
         selectedCard,
         setSelectedCard,
         selectedMetaDeck,

@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
-    const { deckCards, deckName } = await request.json();
+    const { deckCards, deckName, localWinRate } = await request.json();
 
     if (!deckCards || deckCards.length === 0) {
       return NextResponse.json({ error: 'Deck cards are required' }, { status: 400 });
@@ -97,10 +97,16 @@ You are tasked with evaluating a user's custom deck against the current meta.
 The meta consists of:
 ${metaText}
 
-Evaluate the user's deck based on energy curve, synergies, and evolution lines.
+CRITICAL RULES FOR PTCG POCKET:
+1. In Pokemon TCG Pocket, Energy cards are NOT included in the 20-card deck. Energy is generated automatically by the Energy Zone. DO NOT penalize the deck for having 0 energy cards.
+2. The user's local simulator has already run 10,000 matches and determined the exact win rate to be: ${localWinRate !== undefined ? localWinRate.toFixed(1) : 50}%.
+3. You MUST output this EXACT win rate in your JSON response ("winRate": ${localWinRate !== undefined ? localWinRate.toFixed(1) : 50}).
+4. Base your analysis, strengths, and weaknesses on justifying why this deck achieved that win rate.
+
+Evaluate the user's deck based on synergies and evolution lines.
 Respond ONLY with a valid JSON object in the exact following format, without markdown or comments:
 {
-  "winRate": 68,
+  "winRate": ${localWinRate !== undefined ? localWinRate.toFixed(1) : 50},
   "analysis": "A concise 2-3 sentence summary of why this win rate was given.",
   "strengths": ["Strength 1", "Strength 2"],
   "weaknesses": ["Weakness 1", "Weakness 2"],

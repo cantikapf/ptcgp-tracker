@@ -25,6 +25,13 @@ export default function AiDeckBuilderModal() {
     setSelectedCard,
   } = useDeckTracker();
 
+  const SUGGESTED_PROMPTS = [
+    "Fast lightning deck using Pikachu ex",
+    "Psychic control deck with Mewtwo ex",
+    "Heavy fire damage Charizard ex",
+    "Water stall deck using Articuno ex"
+  ];
+
   const [localSimProgress, setLocalSimProgress] = React.useState<number>(0);
   const [localSimWins, setLocalSimWins] = React.useState<number>(0);
   const [localSimTurns, setLocalSimTurns] = React.useState<number>(0);
@@ -48,6 +55,7 @@ export default function AiDeckBuilderModal() {
 
     setLocalSimResult(result);
     setIsLocalSimulating(false);
+    return result.winRate;
   };
 
   return (
@@ -72,8 +80,32 @@ export default function AiDeckBuilderModal() {
           {!generatedDeck ? (
             <>
               <p className="modal-desc">
-                Describe the deck you want to build (e.g., &quot;Fast deck using Pikachu&quot; or &quot;Poison deck with Arbok&quot;).
+                Describe the deck you want to build or select a template below.
               </p>
+              
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                {SUGGESTED_PROMPTS.map((promptText, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setAiPrompt(promptText)}
+                    style={{
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '20px',
+                      background: 'rgba(255,255,255,0.1)',
+                      border: '1px solid var(--border-color)',
+                      color: 'var(--text-secondary)',
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                  >
+                    {promptText}
+                  </button>
+                ))}
+              </div>
+
               <textarea 
                 value={aiPrompt}
                 onChange={(e) => setAiPrompt(e.target.value)}
@@ -99,8 +131,9 @@ export default function AiDeckBuilderModal() {
                 <button 
                   className="btn-primary modal-sim-btn" 
                   onClick={() => {
-                    startLocalSimulation();
-                    simulateDeck(); // Also trigger the AI analysis in background
+                    startLocalSimulation().then((finalWinRate) => {
+                      simulateDeck(finalWinRate); // Pass local winrate to AI
+                    });
                   }}
                   disabled={isSimulating || isLocalSimulating}
                 >
@@ -178,8 +211,8 @@ export default function AiDeckBuilderModal() {
               <h4 className="modal-card-list-title">Card List:</h4>
               <div className="deck-builder-card-grid">
                 {generatedDeck.cards.map((c: GeneratedCard, idx: number) => {
-                  const fullCard = cards.find(oc => oc.id === c.id);
-                  const imgUrl = fullCard?.imageUrl || `https://assets.pokemon-zone.com/game-assets/UI/Textures/System/ItemIcons/CardThumb/ICON_${c.id}.webp`;
+                  const fullCard = cards.find(oc => oc.id === c.id) || cards.find(oc => oc.name.toLowerCase() === (c.name || '').toLowerCase());
+                  const imgUrl = fullCard?.imageUrl || `https://assets.pokemon-zone.com/game-assets/CardPreviews/c${c.id}.webp`;
                   return (
                     <div 
                       key={idx} 
@@ -204,15 +237,39 @@ export default function AiDeckBuilderModal() {
                            {c.quantity || c.count || 1}
                          </div>
                        </div>
-                       <div className="deck-builder-card-name">{fullCard?.name || 'Unknown'}</div>
+                       <div className="deck-builder-card-name">{fullCard?.name || c.name || 'Unknown'}</div>
                     </div>
                   );
                 })}
               </div>
 
-              <button className="btn-secondary deck-builder-reset-btn" onClick={() => setGeneratedDeck(null)}>
-                Create Another Deck
-              </button>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                <button 
+                  className="btn-primary" 
+                  style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}
+                  onClick={async () => {
+                    try {
+                      await fetch('/api/decks', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: generatedDeck.id, is_saved: true })
+                      });
+                      alert('Deck berhasil disimpan ke koleksi!');
+                    } catch (e) {
+                      alert('Gagal menyimpan deck');
+                    }
+                  }}
+                >
+                  💾 Simpan Deck
+                </button>
+                <button 
+                  className="btn-secondary" 
+                  style={{ flex: 1 }}
+                  onClick={() => setGeneratedDeck(null)}
+                >
+                  Create Another Deck
+                </button>
+              </div>
             </div>
           )}
         </BaseModal>

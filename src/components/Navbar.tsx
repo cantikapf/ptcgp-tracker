@@ -26,6 +26,9 @@ export default function Navbar() {
         <button className="btn-secondary" onClick={() => setShowAiModal(true)}>
           <FaRobot /> Ask AI for Deck
         </button>
+        <button className="btn-secondary" onClick={() => setShowSavedDecksModal(true)}>
+          💾 Saved Decks
+        </button>
         <button className="btn-secondary" onClick={handleSyncMeta} disabled={isSyncingMeta}>
           <FaTrophy className={isSyncingMeta ? 'spin' : ''} /> {isSyncingMeta ? 'Syncing Meta...' : 'Sync Meta Decks'}
         </button>
