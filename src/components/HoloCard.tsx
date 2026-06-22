@@ -34,7 +34,7 @@ export default function HoloCard({ id, name, imageUrl, quantity = 1, style, clas
       setImgSrc(`https://assets.pokemon-zone.com/game-assets/UI/Textures/System/ItemIcons/CardThumb/ICON_${id}.webp`);
     } else if (nextIndex === 3) {
       if (imageUrl && imageUrl.includes('/promo')) {
-        setImgSrc(imageUrl.replace(/\\/promo([a-z])-/i, '/p-$1-'));
+        setImgSrc(imageUrl.replace(new RegExp('/promo([a-z])-', 'i'), '/p-$1-'));
       } else {
         setImgSrc('https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/card-back.png');
       }
