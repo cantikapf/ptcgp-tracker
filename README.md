@@ -11,7 +11,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js" alt="Next.js" />
   <img src="https://img.shields.io/badge/React-19-61dafb?style=for-the-badge&logo=react" alt="React" />
-  <img src="https://img.shields.io/badge/SQLite-3-003B57?style=for-the-badge&logo=sqlite" alt="SQLite" />
+  <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
   <img src="https://img.shields.io/badge/TypeScript-5-3178c6?style=for-the-badge&logo=typescript" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Gemini_AI-Powered-4285f4?style=for-the-badge&logo=google" alt="Gemini AI" />
 </p>
@@ -51,7 +51,7 @@ Beautifully renders your entire collection with:
 - **Collection Progress** — per-set completion tracking with visual progress bars
 
 ### 🧠 AI Deck Builder
-Tell the AI what kind of deck you want (e.g., *"A fire deck with Charizard ex"*). The AI reads your SQLite database and generates a strictly legal **20-card deck** using **only cards you own**.
+Tell the AI what kind of deck you want (e.g., *"A fire deck with Charizard ex"*). The AI reads your Supabase database and generates a strictly legal **20-card deck** using **only cards you own**.
 
 ### 🛡️ Triple AI Fallback System
 Ensures 100% uptime for deck generation:
@@ -79,7 +79,7 @@ Scrapes and displays the latest competitive meta decks from [pokemon-tcg-pocket.
 | **Framework** | [Next.js 16](https://nextjs.org/) (App Router, Turbopack) |
 | **Frontend** | React 19, Framer Motion, React Icons |
 | **Styling** | Vanilla CSS with Glassmorphism & Holographic effects |
-| **Database** | SQLite (`sqlite3` + `sqlite`) |
+| **Database** | Supabase (PostgreSQL) |
 | **Scraping** | Puppeteer Extra + Stealth Plugin, Cheerio |
 | **AI** | Google Gemini (`@google/genai`), Groq & OpenRouter (`openai` SDK) |
 | **Language** | TypeScript 5 |
@@ -116,6 +116,11 @@ Edit `.env.local`:
 # Your Pokemon-Zone Player ID (from your profile URL)
 PLAYER_ID=your_player_id_here
 
+# Supabase Database Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
 # AI API Keys (at least one required for deck builder)
 GEMINI_API_KEY=your_gemini_api_key
 GROQ_API_KEY=your_groq_api_key
@@ -127,7 +132,7 @@ OPENROUTER_API_KEY=your_openrouter_api_key
 
 ### 3. Database Setup
 
-Initialize the SQLite database with the full Pokémon TCG Pocket card catalog:
+This project uses Supabase for the database. You'll need to create a Supabase project, run the provided SQL scripts in the `supabase_schema.sql` file via the Supabase SQL Editor to set up your tables, and then run the seeder:
 
 ```bash
 node scripts/seed_db.mjs
@@ -149,26 +154,28 @@ Open **[http://localhost:3000](http://localhost:3000)** and click **"Sync Data"*
 ptcgp-tracker/
 ├── src/
 │   ├── app/
-│   │   ├── api/
-│   │   │   ├── cards/           # GET — read card collection from SQLite
+│   │   ├── api/                 # API routes handling Supabase interactions
+│   │   │   ├── cards/           # GET — read card collection
 │   │   │   ├── decks/           # GET — read saved/history decks
-│   │   │   ├── generate-deck/   # POST — AI deck generation (triple fallback)
+│   │   │   ├── generate-deck/   # POST — AI deck generation
 │   │   │   ├── simulate-deck/   # POST — AI battle simulation
-│   │   │   ├── sync/            # POST — scrape collection from Pokemon-Zone
+│   │   │   ├── sync/            # POST — scrape collection
 │   │   │   └── sync-meta/       # POST — scrape meta tier list
-│   │   ├── page.tsx             # Main application page
+│   │   ├── page.tsx             # Main application wrapper
 │   │   ├── layout.tsx           # Root layout
-│   │   └── globals.css          # Global styles & design system
-│   └── components/
-│       ├── HoloCard.tsx         # 3D holographic card component
-│       └── holo.css             # Holographic effect styles
+│   │   └── globals.css          # Global styles & responsive rules
+│   ├── components/              # Modular UI components
+│   │   ├── modals/              # UI Modals (AI Deck, Card Detail, etc)
+│   │   ├── HoloCard.tsx         # 3D holographic card component
+│   │   ├── CollectionGrid.tsx   # Collection display grid
+│   │   └── ...                  # Navbar, MetaDecksShowcase, etc
+│   └── context/
+│       └── DeckTrackerContext.tsx # Centralized global state management
 ├── scripts/
-│   ├── seed_db.mjs              # Initialize SQLite with card catalog
-│   ├── scrapeLimitless.mjs      # Scrape meta deck data
-│   └── ...                      # Other utility scripts
-├── data/                        # JSON data files
-├── public/                      # Static assets (meta-tier-list.json)
-└── ptcgp_tracker.sqlite         # SQLite database (gitignored)
+│   ├── seed_db.mjs              # Initialize Supabase with card catalog
+│   └── scrapeLimitless.mjs      # Scrape meta deck data
+├── supabase_schema.sql          # Supabase database table structures
+└── ...
 ```
 
 ---
@@ -204,7 +211,8 @@ This will:
 - [ ] Deck sharing via public links
 - [ ] Card trading suggestions with friends
 - [ ] Pack opening probability calculator
-- [ ] Mobile-responsive PWA
+- [x] Mobile-responsive UI
+- [ ] Full PWA capabilities (offline, installable)
 - [ ] Multi-language support
 
 ---
