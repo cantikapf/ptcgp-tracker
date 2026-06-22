@@ -120,9 +120,34 @@ ${matchupsTemplate}
     const userPrompt = `Here is the user's deck titled "${deckName || 'Custom Deck'}":\n\n${deckContext}\n\nSimulate 100 battles and output the JSON evaluation.`;
 
     let aiResponse = '';
+    const errorLogs: string[] = [];
+
+    // Strategy 0: Mistral AI (Preferred)
+    if (process.env.MISTRAL_API_KEY && !aiResponse) {
+      try {
+        console.log('Trying Mistral API...');
+        const openai = new OpenAI({
+          apiKey: process.env.MISTRAL_API_KEY,
+          baseURL: "https://api.mistral.ai/v1",
+        });
+        const completion = await openai.chat.completions.create({
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+          ],
+          model: "mistral-large-latest",
+          response_format: { type: "json_object" }
+        });
+        aiResponse = completion.choices[0].message.content || '';
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        console.error('Mistral Failed:', msg);
+        errorLogs.push('Mistral: ' + msg);
+      }
+    }
 
     // Strategy 1: Gemini
-    if (process.env.GEMINI_API_KEY) {
+    if (!aiResponse && process.env.GEMINI_API_KEY) {
       try {
         const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
         const response = await ai.models.generateContent({

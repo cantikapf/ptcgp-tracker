@@ -106,6 +106,30 @@ ${cardsContext}
     let aiResultText = '';
     const errorLogs: string[] = [];
 
+    // Strategy 0: Mistral AI (Preferred)
+    if (process.env.MISTRAL_API_KEY && !aiResultText) {
+      try {
+        console.log('Trying Mistral API...');
+        const openai = new OpenAI({
+          apiKey: process.env.MISTRAL_API_KEY,
+          baseURL: "https://api.mistral.ai/v1",
+        });
+        const completion = await openai.chat.completions.create({
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+          ],
+          model: "mistral-large-latest",
+          response_format: { type: "json_object" }
+        });
+        aiResultText = completion.choices[0].message.content || '';
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        console.error('Mistral Failed:', msg);
+        errorLogs.push('Mistral: ' + msg);
+      }
+    }
+
     // Strategy 1: Gemini
     if (process.env.GEMINI_API_KEY && !aiResultText) {
       try {
