@@ -155,7 +155,7 @@ Our syncing strategy is split into two complementary systems:
 ### 🔹 2. AI Intelligence Engine
 The app isn't just a tracker; it acts as a smart companion. When you request a deck:
 1. It queries **Supabase** to mathematically determine exactly which cards you own.
-2. It sends this constrained list along with advanced competitive guidelines to our **Triple AI Fallback System** (Gemini -> Groq -> OpenRouter).
+2. It sends this constrained list along with advanced competitive guidelines to our **Quadruple AI Fallback System** (Mistral -> Gemini -> Groq -> OpenRouter).
 3. The AI generates a 100% legal, 20-card deck and writes a professional strategy guide on how to pilot it.
 4. Finally, you can pipe that generated deck into the **AI Battle Simulator** to simulate a match against the current meta!
 
@@ -218,7 +218,7 @@ OPENROUTER_API_KEY=your_openrouter_api_key
 ```
 
 > [!TIP]
-> You only need **one** AI key to get started. [Gemini API](https://aistudio.google.com/apikey) offers a generous free tier. Having multiple keys enables the fallback system for maximum reliability.
+> You only need **one** AI key to get started. [Mistral AI](https://console.mistral.ai/api-keys) and [Gemini API](https://aistudio.google.com/apikey) offer generous free tiers. Having multiple keys enables the fallback system for maximum reliability.
 
 ### 3. Database Setup
 
