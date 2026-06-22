@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 
 export async function GET() {
   try {
-    let allCards: any[] = [];
+    let allCards: Record<string, unknown>[] = [];
     let hasMore = true;
     let page = 0;
     const pageSize = 1000;

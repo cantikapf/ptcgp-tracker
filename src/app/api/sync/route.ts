@@ -7,6 +7,12 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
 puppeteer.use(StealthPlugin());
 
+interface DbCard {
+  id: string;
+  quantity: number;
+  [key: string]: unknown;
+}
+
 export async function POST(request: Request) {
   let browser;
   try {
@@ -137,7 +143,7 @@ export async function POST(request: Request) {
       }
     }
 
-    let allCards: any[] = [];
+    let allCards: DbCard[] = [];
     let hasMoreCards = true;
     let pageNum = 0;
     const cardsPageSize = 1000;
