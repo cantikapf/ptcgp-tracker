@@ -229,6 +229,15 @@ Contributions, issues, and feature requests are welcome!
 
 ---
 
+## 📚 Acknowledgements & References
+
+This project draws inspiration and ideas from the amazing Pokémon TCG Pocket open-source community. Special thanks to the following repositories:
+- **[bcollazo/deckgym-core](https://github.com/bcollazo/deckgym-core)** & **[AngelFireLA/PokemonTCGP-BattleSimulator](https://github.com/AngelFireLA/PokemonTCGP-BattleSimulator)** — For inspiring the architecture of our high-speed client-side battle simulation engine.
+- **[daniel-ilett/shaders-holo-card](https://github.com/daniel-ilett/shaders-holo-card)** — For providing excellent references on creating realistic 3D holographic shaders.
+- **[flibustier/pokemon-tcg-pocket-database](https://github.com/flibustier/pokemon-tcg-pocket-database)** — For community efforts in maintaining structured JSON datasets.
+
+---
+
 ## 📄 License
 
 This project is licensed under the [MIT License](https://choosealicense.com/licenses/mit/).
