@@ -102,6 +102,7 @@ CRITICAL RULES FOR PTCG POCKET:
 2. The user's local simulator has already run 10,000 matches and determined the exact win rate to be: ${localWinRate !== undefined ? localWinRate.toFixed(1) : 50}%.
 3. You MUST output this EXACT win rate in your JSON response ("winRate": ${localWinRate !== undefined ? localWinRate.toFixed(1) : 50}).
 4. Base your analysis, strengths, and weaknesses on justifying why this deck achieved that win rate.
+5. IMPORTANT: Your entire response MUST BE IN ENGLISH. Do NOT use Indonesian.
 
 Evaluate the user's deck based on synergies and evolution lines.
 Respond ONLY with a valid JSON object in the exact following format, without markdown or comments:

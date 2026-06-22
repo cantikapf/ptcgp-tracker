@@ -104,10 +104,11 @@ Your task is to build a competitive deck based on the user's request, but YOU MU
    - You MUST STRICTLY build a Mono-type deck (only ONE type of Pokemon like Water, Fire, or Lightning). You may add Colorless Pokemon, but DO NOT mix multiple elemental types.
    - EVOLUTION RULE: If you include a Stage 1 or Stage 2 Pokemon (e.g. Gengar, Charizard, Raichu), you ABSOLUTELY MUST include its Basic form (e.g. Gastly, Charmander, Pikachu) from the Owned Cards list. Do NOT include evolved Pokemon without their base forms!
    - DO NOT include Trainer cards that support Stage 2 Pokemon (e.g. Juliana) if there are NO Stage 2 Pokemon in the deck.
-6. META DECKS INSPIRATION: Consider the current top-tier meta decks (e.g., Pikachu ex aggro, Mewtwo ex control, Articuno ex / Misty stall, Charizard ex ramp). If the user has the cards, try to emulate these strong synergies!
-7. MISSING CARDS COMMUNICATION: If the user requested a specific Pokemon (e.g., "Charizard ex") but they DO NOT own it (it is missing from the "Owned Cards" list), YOU MUST STILL BUILD A VALID 20-CARD DECK using what they have, BUT YOU MUST explicitly state at the very beginning of the "strategy" field: "Maaf, Anda tidak memiliki [Nama Kartu yang Diminta] di koleksi Anda, jadi saya menggunakan alternatif..."
-8. (Note: Basic Energy cards are not part of the 20-card deck in Pokemon TCG Pocket, so DO NOT include basic energy cards in the list).
-9. Output MUST be ONLY valid JSON, without any markdown formatting or code blocks. DO NOT ADD CODE COMMENTS (e.g. //) INSIDE THE JSON!
+6. META DECKS INSPIRATION: Consider the current top-tier meta decks. If the user has the cards, emulate strong synergies!
+7. MISSING CARDS COMMUNICATION: If the user requested a specific Pokemon (e.g., "Charizard ex") but they DO NOT own it, YOU MUST explicitly state at the very beginning of the "strategy" field: "Sorry, you don't own [Requested Card] in your collection, so I used [Alternative] instead..."
+8. (Note: Basic Energy cards are not part of the 20-card deck in Pokemon TCG Pocket, so DO NOT include them).
+9. IMPORTANT: Your entire response (thoughtProcess, deckName, strategy) MUST BE IN ENGLISH. Do NOT use Indonesian.
+10. Output MUST be ONLY valid JSON, without any markdown formatting or code blocks. DO NOT ADD CODE COMMENTS!
 
 EXPECTED JSON FORMAT:
 {
