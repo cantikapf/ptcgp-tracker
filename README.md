@@ -57,6 +57,12 @@ Beautifully renders your entire collection with:
 Tell the AI what kind of deck you want (e.g., *"A fire deck with Charizard ex"*). The AI reads your Supabase database and generates a strictly legal **20-card deck** using **only cards you own**.
 **Advanced AI Guardrails:** Built-in logic prevents the AI from hallucinating unplayable combos (e.g. using Koga without Muk/Weezing) and strictly enforces valid evolution chains.
 
+**Professional AI Analysis Output:**
+Every generated deck comes with a comprehensive, competitive-tier analysis broken down into three sections:
+1. **Decklist & Ratios**: A detailed breakdown of the 20-card composition (Pokémon, Items, Supporters) and the exact counts.
+2. **Synergy Analysis**: Explanations of the core combos and how specific cards interact within the deck engine.
+3. **Game Plan & Matchups**: Turn-by-turn setup guides for the early game, primary win conditions, and how to mitigate weaknesses against natural counter decks in the meta.
+
 ### 🛡️ Triple AI Fallback System
 Ensures 100% uptime for deck generation:
 | Priority | Provider | Model |
@@ -66,10 +72,10 @@ Ensures 100% uptime for deck generation:
 | 3rd | OpenRouter | `gpt-4o-mini` |
 
 ### ⚔️ AI Battle Simulator
-Simulate your generated deck against the current top meta decks. The AI analyzes matchups and provides:
-- Win rate estimation
-- Strengths & weaknesses analysis
-- Per-matchup probabilities against top-tier decks
+Test your newly generated deck instantly against the current top-tier meta without opening the game! The AI acts as an impartial judge and simulates a high-level competitive match against popular meta decks (like Pikachu ex aggro or Mewtwo ex control).
+- **Matchup Probabilities**: Calculates your deck's estimated win rate percentage against specific opponents based on typing advantages and setup speed.
+- **Strengths & Weaknesses**: Identifies critical points of failure in your strategy.
+- **Turn Simulation**: Gives a high-level overview of how a match might theoretically play out if both players draw optimally.
 
 ### 🏆 Live Meta Tier List
 Scrapes and displays the latest competitive meta decks from [pokemon-tcg-pocket.com](https://pokemon-tcg-pocket.com/). Shows tier rankings, win rates, strategies, and lets you check which meta deck cards you already own.
