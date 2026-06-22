@@ -137,7 +137,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const { data: allCards, error: fetchError } = await supabase.from('cards').select('*');
+    const { data: allCards, error: fetchError } = await supabase.from('cards').select('*').limit(5000);
     if (fetchError) throw fetchError;
 
     let updatedCount = 0;

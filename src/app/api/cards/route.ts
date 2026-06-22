@@ -7,7 +7,8 @@ export async function GET() {
       .from('cards')
       .select('id, name, slug, expansionId, expansionName, pokedexNumber, quantity, imageUrl, cardType, hp, lastReceivedAt')
       .order('expansionId', { ascending: true })
-      .order('pokedexNumber', { ascending: true });
+      .order('pokedexNumber', { ascending: true })
+      .limit(5000);
 
     if (error) throw error;
 
