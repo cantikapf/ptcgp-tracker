@@ -3,8 +3,7 @@ import { GoogleGenAI } from '@google/genai';
 import OpenAI from 'openai';
 import fs from 'fs';
 import path from 'path';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
@@ -14,24 +13,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Deck cards are required' }, { status: 400 });
     }
 
-    // Resolve card names from SQLite if missing
     const resolvedDeckCards = [];
-    let db;
     for (const c of deckCards) {
       let name = c.name;
       const count = c.count || c.quantity || 1;
       const cardId = c.id || c.cardId;
       
       if ((!name || name === 'Unknown Card') && cardId) {
-        if (!db) {
-          db = await open({
-            filename: path.resolve(process.cwd(), 'ptcgp_tracker.sqlite'),
-            driver: sqlite3.Database
-          });
-        }
-        const row = await db.get('SELECT name FROM cards WHERE id = ?', cardId);
-        if (row) {
-          name = row.name;
+        const { data, error } = await supabase.from('cards').select('name').eq('id', cardId).single();
+        if (!error && data) {
+          name = data.name;
         }
       }
       resolvedDeckCards.push({
@@ -40,9 +31,6 @@ export async function POST(request: Request) {
         name: name || 'Unknown Card',
         count: count
       });
-    }
-    if (db) {
-      await db.close();
     }
 
     const deckContext = resolvedDeckCards.map((c: { count: number; name: string; }) => `[${c.count}x] ${c.name}`).join('\n');

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+import { supabase } from '@/lib/supabase';
 import path from 'path';
 import fs from 'fs';
 import puppeteer from 'puppeteer-extra';
@@ -131,19 +130,6 @@ export async function POST(request: Request) {
       }
     }
 
-    const dbPath = path.resolve(process.cwd(), 'ptcgp_tracker.sqlite');
-    const db = await open({
-      filename: dbPath,
-      driver: sqlite3.Database
-    });
-
-    // Reset all quantities to 0
-    await db.exec('UPDATE cards SET quantity = 0');
-
-    // Update quantities based on synced data
-    const updateStmt = await db.prepare('UPDATE cards SET quantity = ? WHERE id = ?');
-    
-    let updatedCount = 0;
     const quantities: Record<string, number> = {};
     for (const item of userCards) {
       if (item.cardId) {
@@ -151,13 +137,20 @@ export async function POST(request: Request) {
       }
     }
 
-    for (const [cardId, qty] of Object.entries(quantities)) {
-      await updateStmt.run(qty, cardId);
-      updatedCount++;
+    const { data: allCards, error: fetchError } = await supabase.from('cards').select('*');
+    if (fetchError) throw fetchError;
+
+    let updatedCount = 0;
+    for(const card of allCards) {
+      card.quantity = quantities[card.id] || 0;
     }
 
-    await updateStmt.finalize();
-    await db.close();
+    for (let i = 0; i < allCards.length; i += 500) {
+      const chunk = allCards.slice(i, i + 500);
+      const { error: upsertError } = await supabase.from('cards').upsert(chunk);
+      if (upsertError) throw upsertError;
+      updatedCount += chunk.length;
+    }
 
     return NextResponse.json({ success: true, updated: updatedCount });
 

@@ -1,23 +1,15 @@
 import { NextResponse } from 'next/server';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
-import path from 'path';
+import { supabase } from '@/lib/supabase';
 
 export async function GET() {
   try {
-    const dbPath = path.resolve(process.cwd(), 'ptcgp_tracker.sqlite');
-    const db = await open({
-      filename: dbPath,
-      driver: sqlite3.Database
-    });
+    const { data: cards, error } = await supabase
+      .from('cards')
+      .select('id, name, slug, expansionId, expansionName, pokedexNumber, quantity, imageUrl, cardType, hp, lastReceivedAt')
+      .order('expansionId', { ascending: true })
+      .order('pokedexNumber', { ascending: true });
 
-    const cards = await db.all(`
-      SELECT id, name, slug, expansionId, expansionName, pokedexNumber, quantity, imageUrl, cardType, hp, lastReceivedAt
-      FROM cards 
-      ORDER BY expansionId ASC, pokedexNumber ASC
-    `);
-
-    await db.close();
+    if (error) throw error;
 
     return NextResponse.json({ cards });
   } catch (error) {

@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
-import path from 'path';
+import { supabase } from '@/lib/supabase';
 import { GoogleGenAI } from '@google/genai';
 import OpenAI from 'openai';
 import { randomUUID } from 'crypto';
@@ -16,16 +14,9 @@ export async function POST(request: Request) {
 
     const isMock = process.env.MOCK_API === 'true';
     if (isMock) {
-      const dbPath = path.resolve(process.cwd(), 'ptcgp_tracker.sqlite');
-      const db = await open({
-        filename: dbPath,
-        driver: sqlite3.Database
-      });
-
-      const ownedCards = await db.all('SELECT id, name, cardType, quantity FROM cards WHERE quantity > 0');
+      const { data: ownedCards, error: fetchError } = await supabase.from('cards').select('id, name, cardType, quantity').gt('quantity', 0);
       
-      if (ownedCards.length === 0) {
-        await db.close();
+      if (fetchError || !ownedCards || ownedCards.length === 0) {
         return NextResponse.json({ error: 'You do not own any cards yet. Please sync your collection first.' }, { status: 400 });
       }
 
@@ -50,29 +41,23 @@ export async function POST(request: Request) {
         cards: deckCards
       };
 
-      await db.run(
-        'INSERT INTO decks (id, name, strategy, cards_json, is_saved) VALUES (?, ?, ?, ?, 0)',
-        deckId,
-        deckData.deckName,
-        deckData.strategy,
-        JSON.stringify(deckData.cards)
-      );
+      const { error: insertError } = await supabase.from('saved_decks').insert({
+        id: deckId,
+        name: deckData.deckName,
+        strategy: deckData.strategy,
+        cards: JSON.stringify(deckData.cards)
+      });
 
-      await db.close();
+      if (insertError) console.error(insertError);
+
       return NextResponse.json({ success: true, deck: deckData });
     }
 
-    // 1. Fetch available cards from SQLite
-    const dbPath = path.resolve(process.cwd(), 'ptcgp_tracker.sqlite');
-    const db = await open({
-      filename: dbPath,
-      driver: sqlite3.Database
-    });
+    // 1. Fetch available cards from Supabase
+    const { data: ownedCards, error: fetchError } = await supabase.from('cards').select('*').gt('quantity', 0);
+    if (fetchError) throw fetchError;
 
-    const ownedCards = await db.all('SELECT id, name, cardType, quantity, stage, evolvesFrom, hp, attacks, abilities, rules FROM cards WHERE quantity > 0');
-    await db.close();
-
-    if (ownedCards.length === 0) {
+    if (!ownedCards || ownedCards.length === 0) {
       return NextResponse.json({ error: 'You do not own any cards yet. Please sync your collection first.' }, { status: 400 });
     }
 
@@ -243,20 +228,15 @@ ${cardsContext}
     const deckId = randomUUID();
     deckData.id = deckId;
 
-    // Save to DB as History
-    const dbWrite = await open({
-      filename: path.resolve(process.cwd(), 'ptcgp_tracker.sqlite'),
-      driver: sqlite3.Database
+    const { error: insertError } = await supabase.from('saved_decks').insert({
+      id: deckId,
+      name: deckData.deckName || 'Generated Deck',
+      cards: JSON.stringify(deckData.cards || [])
     });
-    
-    await dbWrite.run(
-      'INSERT INTO decks (id, name, strategy, cards_json, is_saved) VALUES (?, ?, ?, ?, 0)',
-      deckId,
-      deckData.deckName || 'Generated Deck',
-      deckData.strategy || '',
-      JSON.stringify(deckData.cards || [])
-    );
-    await dbWrite.close();
+
+    if (insertError) {
+      console.error('Supabase Error:', insertError);
+    }
 
     return NextResponse.json({ success: true, deck: deckData });
 

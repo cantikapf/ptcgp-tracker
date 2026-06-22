@@ -1,26 +1,20 @@
 import { NextResponse } from 'next/server';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
-import path from 'path';
-
-async function getDb() {
-  return open({
-    filename: path.resolve(process.cwd(), 'ptcgp_tracker.sqlite'),
-    driver: sqlite3.Database
-  });
-}
+import { supabase } from '@/lib/supabase';
 
 // Get all decks (History and Saved)
 export async function GET() {
   try {
-    const db = await getDb();
-    const decks = await db.all('SELECT * FROM decks ORDER BY created_at DESC');
-    await db.close();
+    const { data: decks, error } = await supabase
+      .from('saved_decks')
+      .select('*')
+      .order('createdAt', { ascending: false });
+
+    if (error) throw error;
     
     // Parse JSON for cards
     const parsedDecks = decks.map(d => ({
       ...d,
-      cards: JSON.parse(d.cards_json)
+      cards: d.cards ? JSON.parse(d.cards) : []
     }));
 
     return NextResponse.json({ success: true, decks: parsedDecks });
@@ -36,9 +30,8 @@ export async function PUT(request: Request) {
     const { id, is_saved } = await request.json();
     if (!id) return NextResponse.json({ error: 'Deck ID required' }, { status: 400 });
 
-    const db = await getDb();
-    await db.run('UPDATE decks SET is_saved = ? WHERE id = ?', is_saved ? 1 : 0, id);
-    await db.close();
+    const { error } = await supabase.from('saved_decks').update({ is_saved: is_saved ? 1 : 0 }).eq('id', id);
+    if (error) throw error;
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -53,9 +46,8 @@ export async function DELETE(request: Request) {
     const { id } = await request.json();
     if (!id) return NextResponse.json({ error: 'Deck ID required' }, { status: 400 });
 
-    const db = await getDb();
-    await db.run('DELETE FROM decks WHERE id = ?', id);
-    await db.close();
+    const { error } = await supabase.from('saved_decks').delete().eq('id', id);
+    if (error) throw error;
 
     return NextResponse.json({ success: true });
   } catch (error) {

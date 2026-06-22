@@ -1,35 +1,19 @@
 import fs from 'fs';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+
+dotenv.config({ path: '.env.local' });
 
 async function seed() {
-  const db = await open({
-    filename: './ptcgp_tracker.sqlite',
-    driver: sqlite3.Database
-  });
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  // Re-create table with cardType for coloring
-  await db.exec(`DROP TABLE IF EXISTS cards`);
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS cards (
-      id TEXT PRIMARY KEY,
-      name TEXT,
-      slug TEXT,
-      expansionId TEXT,
-      expansionName TEXT,
-      pokedexNumber INTEGER,
-      quantity INTEGER DEFAULT 0,
-      imageUrl TEXT,
-      cardType TEXT,
-      stage TEXT,
-      evolvesFrom TEXT,
-      hp INTEGER,
-      attacks TEXT,
-      abilities TEXT,
-      rules TEXT,
-      lastReceivedAt TEXT
-    );
-  `);
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('Missing Supabase environment variables');
+    process.exit(1);
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   console.log('Loading JSON files...');
   const cardDataRaw = JSON.parse(fs.readFileSync('data/raw/card-data.json', 'utf-8'));
@@ -49,14 +33,10 @@ async function seed() {
     }
   }
 
-  const insertStmt = await db.prepare(`
-    INSERT INTO cards (id, name, slug, expansionId, expansionName, pokedexNumber, quantity, imageUrl, cardType, stage, evolvesFrom, hp, attacks, abilities, rules, lastReceivedAt)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-
-  let count = 0;
   const cardEntries = Array.isArray(allCards) ? allCards : Object.entries(allCards);
-  
+  let batch = [];
+  let count = 0;
+
   for (let i=0; i<cardEntries.length; i++) {
     const entry = cardEntries[i];
     let id, card;
@@ -71,7 +51,6 @@ async function seed() {
     const name = card.name || (card.slug ? card.slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : id);
     const qty = quantities[id] || 0;
     
-    // Switch to chase-manning repo CDN for faster images
     let imageUrl = '';
     if (card.expansionId && (card.collectionNumber || card.pokedexNumber)) {
       const cleanExp = card.expansionId.replace(/-/g, '').toLowerCase();
@@ -118,14 +97,14 @@ async function seed() {
     const lra = lastReceivedAt[id] || null;
 
     if (id) {
-        await insertStmt.run(
+        batch.push({
           id,
           name,
-          card.slug || '',
-          card.expansionId || '',
-          card.expansionName || '',
-          card.pokedexNumber || card.collectionNumber || 0,
-          qty,
+          slug: card.slug || '',
+          expansionId: card.expansionId || '',
+          expansionName: card.expansionName || '',
+          pokedexNumber: card.pokedexNumber || card.collectionNumber || 0,
+          quantity: qty,
           imageUrl,
           cardType,
           stage,
@@ -134,15 +113,26 @@ async function seed() {
           attacks,
           abilities,
           rules,
-          lra
-        );
-        count++;
+          lastReceivedAt: lra
+        });
+        
+        if (batch.length === 100) {
+          const { error } = await supabase.from('cards').upsert(batch);
+          if (error) console.error('Error inserting batch:', error);
+          count += batch.length;
+          batch = [];
+          console.log(`Seeded ${count} cards...`);
+        }
     }
   }
 
-  await insertStmt.finalize();
-  console.log(`Successfully seeded ${count} cards into SQLite database!`);
-  await db.close();
+  if (batch.length > 0) {
+    const { error } = await supabase.from('cards').upsert(batch);
+    if (error) console.error('Error inserting batch:', error);
+    count += batch.length;
+  }
+
+  console.log(`Successfully seeded ${count} cards into Supabase database!`);
 }
 
 seed().catch(console.error);
