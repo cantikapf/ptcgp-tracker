@@ -16,18 +16,29 @@ interface HoloCardProps {
 export default function HoloCard({ id, name, imageUrl, quantity = 1, style, className }: HoloCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [imgSrc, setImgSrc] = useState(imageUrl);
-  const [hasError, setHasError] = useState(false);
+  const [fallbackIndex, setFallbackIndex] = useState(0);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setImgSrc(imageUrl);
-    setHasError(false);
+    setFallbackIndex(0);
   }, [imageUrl]);
 
   const handleError = () => {
-    if (!hasError) {
-      setHasError(true);
+    const nextIndex = fallbackIndex + 1;
+    setFallbackIndex(nextIndex);
+    
+    if (nextIndex === 1) {
       setImgSrc(`https://assets.pokemon-zone.com/game-assets/UI/Textures/System/ItemIcons/CardThumb/ICON_${id}.webp`);
+    } else if (nextIndex === 2) {
+      // Try chase-manning github generic A1 item
+      setImgSrc(`https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/a1-${String(id).match(/\\d+/) ? String(id).replace(/\\D/g, '').padStart(3, '0') : id}.png`);
+    } else if (nextIndex === 3) {
+      // Try Promo A
+      setImgSrc(`https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/p-a-${String(id).match(/\\d+/) ? String(id).replace(/\\D/g, '').padStart(3, '0') : id}.png`);
+    } else {
+      // Final generic fallback card back
+      setImgSrc('https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/card-back.png');
     }
   };
 

@@ -208,6 +208,22 @@ export default function AiDeckBuilderModal() {
                 </motion.div>
               )}
 
+              <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', marginBottom: '1rem', border: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ flex: 1 }}>
+                    <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Generated from Prompt:</h4>
+                    <p style={{ margin: 0, fontStyle: 'italic', color: 'var(--text-primary)' }}>&quot;{aiPrompt}&quot;</p>
+                  </div>
+                  <button 
+                    className="btn-secondary" 
+                    onClick={() => { setGeneratedDeck(null); }}
+                    style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}
+                  >
+                    🔄 Edit / Regenerate
+                  </button>
+                </div>
+              </div>
+
               <h4 className="modal-card-list-title">Card List:</h4>
               <div className="deck-builder-card-grid">
                 {generatedDeck.cards.map((c: GeneratedCard, idx: number) => {
