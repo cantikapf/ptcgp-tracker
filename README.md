@@ -140,6 +140,10 @@ node scripts/seed_db.mjs
 
 ### 4. Run
 
+**For Windows Users (Recommended):**
+Simply double-click the `start-local.bat` file in the project folder. This will automatically install any missing dependencies and start the local development server for you.
+
+**Alternative (Command Line):**
 ```bash
 npm run dev
 ```
