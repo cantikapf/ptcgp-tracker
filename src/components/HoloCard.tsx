@@ -32,6 +32,28 @@ export default function HoloCard({ id, name, imageUrl, quantity = 1, style, clas
   }, [imageUrl]);
 
   const handleError = () => {
+    if (!imgSrc) {
+      setImgSrc('/images/card-back.png');
+      return;
+    }
+
+    if (typeof imgSrc === 'string' && imgSrc.includes('/api/proxy-image')) {
+      // Skip subsequent intermediate proxied attempts, immediately fallback to local card back
+      setImgSrc('/images/card-back.png');
+      return;
+    }
+
+    if (imgSrc === '/images/card-back.png') {
+      // Avoid infinite loop if local card back fails, use transparent pixel fallback
+      setImgSrc('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7');
+      return;
+    }
+
+    if (imgSrc === 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7') {
+      // Already at final fallback
+      return;
+    }
+
     const nextIndex = fallbackIndex + 1;
     setFallbackIndex(nextIndex);
     
@@ -43,10 +65,10 @@ export default function HoloCard({ id, name, imageUrl, quantity = 1, style, clas
       if (imageUrl && imageUrl.includes('/promo')) {
         setImgSrc(imageUrl.replace(new RegExp('/promo([a-z])-', 'i'), '/p-$1-'));
       } else {
-        setImgSrc('https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/card-back.png');
+        setImgSrc('/images/card-back.png');
       }
     } else {
-      setImgSrc('https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/card-back.png');
+      setImgSrc('/images/card-back.png');
     }
   };
 
@@ -97,7 +119,7 @@ export default function HoloCard({ id, name, imageUrl, quantity = 1, style, clas
         className={`holo-card ${quantity === 0 ? 'grayscale' : ''} ${isHolo ? 'holo-enabled' : ''} ${isCosmos ? 'holo-cosmos' : ''}`}
       >
         <img 
-          src={imgSrc} 
+          src={imgSrc || '/images/card-back.png'} 
           alt={name} 
           referrerPolicy="no-referrer"
           onError={handleError}
