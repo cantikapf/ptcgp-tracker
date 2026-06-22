@@ -60,14 +60,14 @@ async function seed() {
     const name = card.name || (card.slug ? card.slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : id);
     const qty = quantities[id] || 0;
     
-    let imageUrl = '';
-    if (card.expansionId && (card.collectionNumber || card.pokedexNumber)) {
+    let imageUrl = card.illustrationUrl || card.image;
+    if (!imageUrl && card.expansionId && (card.collectionNumber || card.pokedexNumber)) {
       const cleanExp = card.expansionId.replace(/-/g, '').toLowerCase();
       const num = card.collectionNumber || card.pokedexNumber || 0;
       const paddedNum = String(num).padStart(3, '0');
       imageUrl = `https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/${cleanExp}-${paddedNum}.png`;
-    } else {
-      imageUrl = card.illustrationUrl || card.image || `https://assets.pokemon-zone.com/game-assets/CardPreviews/c${id}.webp`;
+    } else if (!imageUrl) {
+      imageUrl = `https://assets.pokemon-zone.com/game-assets/CardPreviews/c${id}.webp`;
     }
     
     let cardType = 'Colorless';

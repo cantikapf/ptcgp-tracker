@@ -15,12 +15,19 @@ interface HoloCardProps {
 
 export default function HoloCard({ id, name, imageUrl, quantity = 1, style, className }: HoloCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [imgSrc, setImgSrc] = useState(imageUrl);
+  const getProxiedUrl = (url: string | null | undefined) => {
+    if (url && url.includes('pokemon-zone.com')) {
+      return `/api/proxy-image?url=${encodeURIComponent(url)}`;
+    }
+    return url;
+  };
+
+  const [imgSrc, setImgSrc] = useState<string | null | undefined>(getProxiedUrl(imageUrl));
   const [fallbackIndex, setFallbackIndex] = useState(0);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setImgSrc(imageUrl);
+    setImgSrc(getProxiedUrl(imageUrl));
     setFallbackIndex(0);
   }, [imageUrl]);
 
@@ -29,9 +36,9 @@ export default function HoloCard({ id, name, imageUrl, quantity = 1, style, clas
     setFallbackIndex(nextIndex);
     
     if (nextIndex === 1) {
-      setImgSrc(`https://assets.pokemon-zone.com/game-assets/CardPreviews/c${id}.webp`);
+      setImgSrc(getProxiedUrl(`https://assets.pokemon-zone.com/game-assets/CardPreviews/c${id}.webp`));
     } else if (nextIndex === 2) {
-      setImgSrc(`https://assets.pokemon-zone.com/game-assets/UI/Textures/System/ItemIcons/CardThumb/ICON_${id}.webp`);
+      setImgSrc(getProxiedUrl(`https://assets.pokemon-zone.com/game-assets/UI/Textures/System/ItemIcons/CardThumb/ICON_${id}.webp`));
     } else if (nextIndex === 3) {
       if (imageUrl && imageUrl.includes('/promo')) {
         setImgSrc(imageUrl.replace(new RegExp('/promo([a-z])-', 'i'), '/p-$1-'));
