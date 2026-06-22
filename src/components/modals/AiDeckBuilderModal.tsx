@@ -244,8 +244,12 @@ export default function AiDeckBuilderModal() {
               <h4 className="modal-card-list-title">Card List:</h4>
               <div className="deck-builder-card-grid">
                 {generatedDeck.cards.map((c: GeneratedCard, idx: number) => {
-                  const fullCard = cards.find(oc => oc.id === c.id) || cards.find(oc => oc.name.toLowerCase() === (c.name || '').toLowerCase());
-                  const cardNameLower = (fullCard?.name || c.name || '').toLowerCase();
+                  const matchString = (c.id || '').toLowerCase();
+                  const fullCard = cards.find(oc => oc.id.toLowerCase() === matchString) || 
+                                   cards.find(oc => oc.name.toLowerCase() === matchString) ||
+                                   cards.find(oc => oc.name.toLowerCase() === (c.name || '').toLowerCase());
+                  
+                  const cardNameLower = (fullCard?.name || c.name || c.id || '').toLowerCase();
                   let imgUrl = fullCard?.imageUrl;
                   
                   // Use dictionary fallback if image is missing or it's a known trainer card

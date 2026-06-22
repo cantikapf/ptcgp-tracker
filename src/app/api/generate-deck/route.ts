@@ -63,32 +63,12 @@ export async function POST(request: Request) {
 
     const cardsContext = ownedCards.map(c => {
       let context = `[${c.id}] ${c.name} (Type: ${c.cardType}) - Max Copies: ${c.quantity}`;
-      if (c.stage && c.stage !== 'Basic' && c.stage !== 'One' && c.stage !== 'Two' && c.stage !== 'Basic') {
+      if (c.stage && c.stage !== 'Basic' && c.stage !== 'One' && c.stage !== 'Two') {
          context += ` - Stage: ${c.stage} (Evolves from ${c.evolvesFrom || 'Unknown'})`;
       } else if (c.stage) {
          if (c.evolvesFrom) context += ` - Stage: ${c.stage} (Evolves from ${c.evolvesFrom})`;
          else context += ` - Stage: Basic`;
       }
-      
-      if (c.hp) context += ` - HP: ${c.hp}`;
-      if (c.attacks) {
-        try {
-          const atks = JSON.parse(c.attacks);
-          context += ` - Attacks: ${atks.map((a: { name: string; damage?: string | number; cost?: string[]; }) => `${a.name} (${a.damage || 0} DMG, Cost: ${a.cost?.join(',') || 'None'})`).join(' | ')}`;
-        } catch {}
-      }
-      if (c.abilities) {
-        try {
-          const abs = JSON.parse(c.abilities);
-          context += ` - Abilities: ${abs.map((a: { name: string; }) => `${a.name}`).join(' | ')}`;
-        } catch {}
-      }
-      if (c.rules) {
-          // Truncate rules so context doesn't get too bloated
-          const shortRules = c.rules.replace(/\n/g, ' ').substring(0, 100);
-          context += ` - Rules: ${shortRules}...`;
-      }
-      
       return context;
     }).join('\n');
 
