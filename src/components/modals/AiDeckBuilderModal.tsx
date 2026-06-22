@@ -32,23 +32,6 @@ export default function AiDeckBuilderModal() {
     "Water stall deck using Articuno ex"
   ];
 
-  const ITEM_IMAGES: Record<string, string> = {
-    "poké ball": "https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/a1-255.png",
-    "poke ball": "https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/a1-255.png",
-    "professor's research": "https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/a1-269.png",
-    "potion": "https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/a1-256.png",
-    "x speed": "https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/a1-258.png",
-    "red card": "https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/a1-257.png",
-    "sabrina": "https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/a1-271.png",
-    "misty": "https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/a1-267.png",
-    "giovanni": "https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/a1-263.png",
-    "koga": "https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/a1-265.png",
-    "blaine": "https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/a1-259.png",
-    "erika": "https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/a1-262.png",
-    "brock": "https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/a1-260.png",
-    "hand scope": "https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/a1-254.png"
-  };
-
   const [localSimProgress, setLocalSimProgress] = React.useState<number>(0);
   const [localSimWins, setLocalSimWins] = React.useState<number>(0);
   const [localSimTurns, setLocalSimTurns] = React.useState<number>(0);
@@ -249,13 +232,8 @@ export default function AiDeckBuilderModal() {
                                    cards.find(oc => oc.name.toLowerCase() === matchString) ||
                                    cards.find(oc => oc.name.toLowerCase() === (c.name || '').toLowerCase());
                   
-                  const cardNameLower = (fullCard?.name || c.name || c.id || '').toLowerCase();
                   let imgUrl = fullCard?.imageUrl;
-                  
-                  // Use dictionary fallback if image is missing or it's a known trainer card
-                  if (ITEM_IMAGES[cardNameLower]) {
-                    imgUrl = ITEM_IMAGES[cardNameLower];
-                  } else if (!imgUrl) {
+                  if (!imgUrl || imgUrl === '') {
                     imgUrl = `https://assets.pokemon-zone.com/game-assets/CardPreviews/c${c.id}.webp`;
                   }
 
