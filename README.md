@@ -43,6 +43,9 @@
 ### 🔄 1-Click Auto Sync
 Seamlessly syncs your card collection from your public Pokemon-Zone profile using a headless Puppeteer instance with stealth plugins to bypass Cloudflare protection. Supports multi-layered data extraction (API interception → in-page fetch → HTML fallback).
 
+### 🖼️ Local Offline Image Repository
+Ships with over **1,250+ high-quality card images** stored locally. This totally bypasses strict Cloudflare 403 blocks and avoids missing assets from external APIs (like TCGDex lacking newer expansions such as Mega Shine A2a). All images load instantly via Vercel's Edge CDN.
+
 ### 🎴 Holographic Collection Viewer
 Beautifully renders your entire collection with:
 - **3D Holographic Card Effects** — tilt-responsive shine, glare, and cosmos effects based on card rarity
@@ -52,6 +55,7 @@ Beautifully renders your entire collection with:
 
 ### 🧠 AI Deck Builder
 Tell the AI what kind of deck you want (e.g., *"A fire deck with Charizard ex"*). The AI reads your Supabase database and generates a strictly legal **20-card deck** using **only cards you own**.
+**Advanced AI Guardrails:** Built-in logic prevents the AI from hallucinating unplayable combos (e.g. using Koga without Muk/Weezing) and strictly enforces valid evolution chains.
 
 ### 🛡️ Triple AI Fallback System
 Ensures 100% uptime for deck generation:
