@@ -111,6 +111,9 @@ export interface DeckTrackerContextType {
   toggleSet: (setName: string) => void;
   showMetaDecks: boolean;
   setShowMetaDecks: (show: boolean) => void;
+  displayMode: 'flat' | 'grouped';
+  setDisplayMode: (mode: 'flat' | 'grouped') => void;
+  setExpandedSets: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
 }
 
 export const DeckTrackerContext = createContext<DeckTrackerContextType | undefined>(undefined);
@@ -141,6 +144,7 @@ export function DeckTrackerProvider({ children }: { children: ReactNode }) {
   const [showMetaDecks, setShowMetaDecks] = useState(true);
 
   // UI States
+  const [displayMode, setDisplayMode] = useState<'flat' | 'grouped'>('grouped');
   const [expandedSets, setExpandedSets] = useState<Record<string, boolean>>({});
   const [selectedCard, setSelectedCard] = useState<CardData | null>(null);
   const [sortBy, setSortBy] = useState('collection_asc');
@@ -339,6 +343,9 @@ export function DeckTrackerProvider({ children }: { children: ReactNode }) {
         toggleSet,
         showMetaDecks,
         setShowMetaDecks,
+        displayMode,
+        setDisplayMode,
+        setExpandedSets,
       }}
     >
       {children}

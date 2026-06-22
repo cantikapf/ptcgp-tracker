@@ -173,6 +173,129 @@ export async function POST(request: Request) {
       card.quantity = quantities[card.id] || 0;
     }
 
+    const existingCardIds = new Set(allCards.map(c => c.id));
+    const missingCardIds = Object.keys(quantities).filter(id => !existingCardIds.has(id));
+
+    if (missingCardIds.length > 0) {
+      console.log(`Found ${missingCardIds.length} missing cards in database. Fetching metadata...`);
+      let missingCardsData: any[] = [];
+      
+      // If browser is available, fetch dynamically from the API using page evaluate
+      if (browser) {
+        try {
+          const pageList = await browser.pages();
+          const p = pageList.length > 0 ? pageList[0] : await browser.newPage();
+          
+          missingCardsData = await p.evaluate(async (cardIds: string[]) => {
+             const res = await fetch('/api/game/card-data/');
+             if (!res.ok) return [];
+             const d = await res.json();
+             const allC = d.cards || d?.data?.cards || (Array.isArray(d) ? d : Object.values(d));
+             const cardArray = Array.isArray(allC) ? allC : Object.values(allC);
+             
+             return cardIds.map(id => {
+               const found = cardArray.find((c: any) => (c.id || c.cardId) === id);
+               return found ? found : null;
+             }).filter(Boolean);
+          }, missingCardIds);
+        } catch (e) {
+          console.warn('Failed to fetch missing cards from Pokemon Zone API:', e);
+        }
+      } else {
+        // Fallback for mock mode or if browser failed: try to read local file
+        try {
+          const localDataPath = path.resolve(process.cwd(), 'data', 'raw', 'card-data.json');
+          if (fs.existsSync(localDataPath)) {
+             const d = JSON.parse(fs.readFileSync(localDataPath, 'utf8'));
+             const allC = d.cards || d.data?.cards || (Array.isArray(d) ? d : Object.values(d));
+             const cardArray = Array.isArray(allC) ? allC : Object.values(allC);
+             missingCardsData = missingCardIds.map(id => {
+               const found = cardArray.find((c: any) => (c.id || c.cardId) === id);
+               return found ? found : null;
+             }).filter(Boolean);
+          }
+        } catch (e) {
+          console.warn('Failed to read local card-data.json fallback:', e);
+        }
+      }
+
+      // Convert missingCardsData to DbCard format and append to allCards
+      for (const card of missingCardsData) {
+        const id = card.id || card.cardId;
+        const name = card.name || (card.slug ? card.slug.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : id);
+        let imageUrl = card.illustrationUrl || card.image || null;
+        
+        let cardType = 'Colorless';
+        let stage = null;
+        let evolvesFrom = null;
+        let hp = null;
+        let attacks = null;
+        let abilities = null;
+        let rules = null;
+
+        if (card.pokemon) {
+          if (card.pokemon.pokemonTypes && card.pokemon.pokemonTypes.length > 0) {
+            cardType = card.pokemon.pokemonTypes[0];
+          }
+          stage = card.pokemon.evolutionStage || 'Basic';
+          evolvesFrom = card.pokemon.previousEvolution?.cardId || null;
+          hp = card.pokemon.hp || null;
+          if (card.pokemon.pokemonAttacks && card.pokemon.pokemonAttacks.length > 0) {
+            attacks = JSON.stringify(card.pokemon.pokemonAttacks.map((atk: any) => ({
+              name: atk.name,
+              damage: atk.damage,
+              cost: atk.attackCost
+            })));
+          }
+          if (card.pokemon.pokemonAbilities && card.pokemon.pokemonAbilities.length > 0) {
+            abilities = JSON.stringify(card.pokemon.pokemonAbilities.map((ab: any) => ({
+              name: ab.name,
+              description: ab.description
+            })));
+          }
+        } else if (card.trainer) {
+          cardType = card.trainer.trainerTypeLabel || card.trainer.trainerType || 'Trainer';
+          rules = card.description || card.trainer.description || null;
+        }
+
+        const newDbCard: DbCard = {
+          id,
+          name,
+          slug: card.slug || '',
+          expansionId: card.expansionId || '',
+          expansionName: card.expansionName || '',
+          pokedexNumber: card.pokedexNumber || card.collectionNumber || 0,
+          quantity: quantities[id] || 0,
+          imageUrl,
+          cardType,
+          stage,
+          evolvesFrom,
+          hp,
+          attacks,
+          abilities,
+          rules,
+          lastReceivedAt: null
+        };
+        
+        allCards.push(newDbCard);
+      }
+      
+      // For any IDs that we couldn't fetch metadata for, create a very basic fallback
+      const newlyAddedIds = new Set(missingCardsData.map(c => c.id || c.cardId));
+      for (const missingId of missingCardIds) {
+        if (!newlyAddedIds.has(missingId)) {
+          console.warn(`Could not fetch metadata for new card ${missingId}. Creating minimal entry.`);
+          allCards.push({
+            id: missingId,
+            name: `Unknown Card (${missingId})`,
+            quantity: quantities[missingId] || 0,
+            imageUrl: null,
+            cardType: 'Unknown'
+          } as any);
+        }
+      }
+    }
+
     for (let i = 0; i < allCards.length; i += 500) {
       const chunk = allCards.slice(i, i + 500);
       const { error: upsertError } = await supabase.from('cards').upsert(chunk);
