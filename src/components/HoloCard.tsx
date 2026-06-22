@@ -16,60 +16,36 @@ interface HoloCardProps {
 export default function HoloCard({ id, name, imageUrl, quantity = 1, style, className }: HoloCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const getProxiedUrl = (url: string | null | undefined) => {
-    if (url && url.includes('pokemon-zone.com')) {
-      return `/api/proxy-image?url=${encodeURIComponent(url)}`;
-    }
     return url;
   };
 
-  const [imgSrc, setImgSrc] = useState<string | null | undefined>(getProxiedUrl(imageUrl));
+  const [imgSrc, setImgSrc] = useState<string | null | undefined>(imageUrl);
   const [fallbackIndex, setFallbackIndex] = useState(0);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setImgSrc(getProxiedUrl(imageUrl));
+    setImgSrc(imageUrl);
     setFallbackIndex(0);
+    setHasError(false);
   }, [imageUrl]);
 
   const handleError = () => {
-    if (!imgSrc) {
-      setImgSrc('/images/card-back.png');
-      return;
-    }
-
-    if (typeof imgSrc === 'string' && imgSrc.includes('/api/proxy-image')) {
-      // Skip subsequent intermediate proxied attempts, immediately fallback to local card back
-      setImgSrc('/images/card-back.png');
-      return;
-    }
-
-    if (imgSrc === '/images/card-back.png') {
+    if (!imgSrc || imgSrc === '/images/card-back.png') {
       // Avoid infinite loop if local card back fails, use transparent pixel fallback
       setImgSrc('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7');
+      setHasError(true);
       return;
     }
 
     if (imgSrc === 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7') {
       // Already at final fallback
+      setHasError(true);
       return;
     }
 
-    const nextIndex = fallbackIndex + 1;
-    setFallbackIndex(nextIndex);
-    
-    if (nextIndex === 1) {
-      setImgSrc(getProxiedUrl(`https://assets.pokemon-zone.com/game-assets/CardPreviews/c${id}.webp`));
-    } else if (nextIndex === 2) {
-      setImgSrc(getProxiedUrl(`https://assets.pokemon-zone.com/game-assets/UI/Textures/System/ItemIcons/CardThumb/ICON_${id}.webp`));
-    } else if (nextIndex === 3) {
-      if (imageUrl && imageUrl.includes('/promo')) {
-        setImgSrc(imageUrl.replace(new RegExp('/promo([a-z])-', 'i'), '/p-$1-'));
-      } else {
-        setImgSrc('/images/card-back.png');
-      }
-    } else {
-      setImgSrc('/images/card-back.png');
-    }
+    // First fallback is always card back
+    setImgSrc('/images/card-back.png');
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -120,9 +96,12 @@ export default function HoloCard({ id, name, imageUrl, quantity = 1, style, clas
       >
         <img 
           src={imgSrc || '/images/card-back.png'} 
-          alt={name} 
+          alt={hasError ? '' : name} 
           referrerPolicy="no-referrer"
           onError={handleError}
+          style={{
+            display: hasError ? 'none' : 'block',
+          }}
         />
         {isHolo && <div className="shine"></div>}
         <div className="glare"></div>

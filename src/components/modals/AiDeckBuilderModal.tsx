@@ -45,7 +45,7 @@ export default function AiDeckBuilderModal() {
     setLocalSimResult(null);
 
     const result = await runSimulationChunked(
-      { iterations: 10000, myDeck: generatedDeck.cards },
+      { iterations: 10000, myDeck: generatedDeck.cards as any },
       (progress, wins, avgTurns) => {
         setLocalSimProgress(progress);
         setLocalSimWins(wins);
@@ -124,7 +124,14 @@ export default function AiDeckBuilderModal() {
             <div>
               <div className="modal-deck-summary">
                 <h3 className="modal-deck-title">{generatedDeck.name}</h3>
-                <p className="modal-deck-strategy">{generatedDeck.strategy}</p>
+                <p className="modal-deck-strategy">
+                  {generatedDeck.strategy.split(/(\*\*.*?\*\*)/g).map((part, i) => {
+                    if (part.startsWith('**') && part.endsWith('**')) {
+                      return <strong key={i} style={{ color: 'var(--text-primary)' }}>{part.slice(2, -2)}</strong>;
+                    }
+                    return <React.Fragment key={i}>{part}</React.Fragment>;
+                  })}
+                </p>
               </div>
 
               <div className="navbar-actions">
@@ -137,7 +144,7 @@ export default function AiDeckBuilderModal() {
                   }}
                   disabled={isSimulating || isLocalSimulating}
                 >
-                  {isLocalSimulating ? `Simulating ${localSimProgress}%...` : <><FaPlay /> ⚔️ Simulasikan 10.000 Pertarungan</>}
+                  {isLocalSimulating ? `Simulating ${localSimProgress}%...` : <><FaPlay /> ⚔️ Simulate 10,000 Matches</>}
                 </button>
               </div>
 

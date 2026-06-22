@@ -66,6 +66,17 @@ export async function POST(request: Request) {
       if (c.stage === 'Stage 1' || c.stage === 'Stage 2' || c.stage === 'One' || c.stage === 'Two') {
          context += ` [Evolves from ${c.evolvesFrom}]`;
       }
+      if (c.rules && c.rules.trim() !== '') {
+         // Clean up HTML tags like <strong> from rules
+         context += ` [Effect: ${c.rules.replace(/<[^>]*>?/gm, '')}]`;
+      }
+      if (c.abilities && c.abilities !== '[]') {
+         try {
+           const parsedAbilities = JSON.parse(c.abilities);
+           const abilitiesText = parsedAbilities.map((a: any) => `${a.name}: ${a.description}`).join(', ');
+           if (abilitiesText) context += ` [Abilities: ${abilitiesText}]`;
+         } catch(e) {}
+      }
       return context;
     }).join('\n');
 
@@ -76,22 +87,26 @@ Your task is to build a competitive deck based on the user's request, but YOU MU
 3. You CANNOT use more copies of a specific card than the "Max Copies Owned" value provided.
 4. HARD LIMIT: You ABSOLUTELY CANNOT include more than 2 copies of any single card, under ANY circumstances. The "quantity" field MUST be exactly 1 or 2.
 5. LOGICAL SYNERGY & TYPING: Ensure your card choices actually work together in Pokemon TCG. 
-   - A good deck MUST HAVE a balance: roughly 10-14 Pokemon cards and 6-10 Trainer cards (Item/Supporter).
-   - DO NOT make a deck with only Pokemon cards! You MUST include staple Trainer cards (e.g., Professor's Research, Poke Ball, X Speed, Potion) if the user owns them.
+   - CARD RATIO (CRITICAL): A competitive meta deck in Pokemon TCG Pocket MUST have around 8-12 Pokemon and 8-12 Trainer cards. 
+   - YOU MUST INCLUDE STAPLE TRAINERS: You absolutely must include cards like "Professor's Research", "Poké Ball", "X Speed", "Potion", and "Sabrina" if the user owns them!
    - You MUST STRICTLY build a Mono-type deck (only ONE type of Pokemon like Water, Fire, or Lightning). You may add Colorless Pokemon, but DO NOT mix multiple elemental types.
-   - EVOLUTION RULE: If you include a Stage 1 or Stage 2 Pokemon (e.g. Gengar, Charizard, Raichu), you ABSOLUTELY MUST include its Basic form (e.g. Gastly, Charmander, Pikachu) from the Owned Cards list. Do NOT include evolved Pokemon without their base forms!
-   - DO NOT include Trainer cards that support Stage 2 Pokemon (e.g. Juliana) if there are NO Stage 2 Pokemon in the deck.
-6. META DECKS INSPIRATION: Consider the current top-tier meta decks. If the user has the cards, emulate strong synergies!
+   - EVOLUTION RULE: If you include a Stage 1 or Stage 2 Pokemon (e.g. Gengar, Charizard, Raichu), you ABSOLUTELY MUST include its Basic form (e.g. Gastly, Charmander, Pikachu) from the Owned Cards list.
+   - USELESS CARD PREVENTION (CRITICAL): Carefully read the [Effect] of every Trainer card. If a card's effect explicitly requires a specific Pokemon or Type (e.g., Koga requires Muk/Weezing, Misty requires Water Pokémon, Erika requires Grass, Brock requires Golem/Onix, Flame Patch requires Fire), YOU ABSOLUTELY CANNOT INCLUDE IT if that required Pokemon or Type is not in your deck! Do NOT put Koga in a Mewtwo deck!
+6. USER REQUEST PRIORITY: If the user explicitly asks for a specific Pokemon (e.g., "Mewtwo ex"), YOU MUST INCLUDE IT as the main attacker of the deck if they own it!
 7. MISSING CARDS COMMUNICATION: If the user requested a specific Pokemon (e.g., "Charizard ex") but they DO NOT own it, YOU MUST explicitly state at the very beginning of the "strategy" field: "Sorry, you don't own [Requested Card] in your collection, so I used [Alternative] instead..."
 8. (Note: Basic Energy cards are not part of the 20-card deck in Pokemon TCG Pocket, so DO NOT include them).
-9. IMPORTANT: Your entire response (thoughtProcess, deckName, strategy) MUST BE IN ENGLISH. Do NOT use Indonesian.
-10. Output MUST be ONLY valid JSON, without any markdown formatting or code blocks. DO NOT ADD CODE COMMENTS!
+9. LANGUAGE (CRITICAL): Your entire response (thoughtProcess, deckName, strategy) MUST BE IN ENGLISH. Even if the user asks in another language, you MUST respond in English.
+10. STRATEGY FORMAT: Inside the "strategy" string, please provide a detailed analysis using this exact structure (you can use markdown inside the string):
+    - **Synergy Analysis**: Explain specifically the main combos between cards in this deck.
+    - **Game Plan**: What is the ideal setup sequence in the early game, and what is the main win condition?
+    - **Weaknesses & Matchups**: What deck or type is a natural counter to this deck, and what is the best way to mitigate it?
+11. Output MUST be ONLY valid JSON, without any markdown formatting or code blocks around the JSON output. DO NOT ADD CODE COMMENTS!
 
 EXPECTED JSON FORMAT:
 {
   "thoughtProcess": "string (Explain your reasoning)",
   "deckName": "string",
-  "strategy": "string",
+  "strategy": "string (Format carefully with the 3 sections requested)",
   "cards": [
     { "name": "card_name_string", "quantity": number (MUST be 1 or 2) }
   ]

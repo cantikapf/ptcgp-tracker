@@ -61,14 +61,10 @@ async function seed() {
     const qty = quantities[id] || 0;
     
     let imageUrl = card.illustrationUrl || card.image;
-    if (!imageUrl && card.expansionId && (card.collectionNumber || card.pokedexNumber)) {
-      const cleanExp = card.expansionId.replace(/-/g, '').toLowerCase();
-      const num = card.collectionNumber || card.pokedexNumber || 0;
-      const paddedNum = String(num).padStart(3, '0');
-      imageUrl = `https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/images/cards/${cleanExp}-${paddedNum}.png`;
-    } else if (!imageUrl) {
-      imageUrl = `https://assets.pokemon-zone.com/game-assets/CardPreviews/c${id}.webp`;
-    }
+    
+    // Switch to local images since TCGDEX is missing many expansions
+    const fileExt = imageUrl && imageUrl.endsWith('.png') ? '.png' : '.webp';
+    imageUrl = `/images/cards/${card.slug}${fileExt}`;
     
     let cardType = 'Colorless';
     let stage = null;
@@ -100,7 +96,7 @@ async function seed() {
       }
     } else if (card.trainer) {
       cardType = card.trainer.trainerTypeLabel || card.trainer.trainerType || 'Trainer';
-      rules = card.rulesDescription || null;
+      rules = card.description || card.trainer.description || null;
     }
 
     const lra = lastReceivedAt[id] || null;

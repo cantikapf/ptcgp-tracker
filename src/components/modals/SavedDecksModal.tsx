@@ -19,12 +19,6 @@ export default function SavedDecksModal() {
   const [savedDecks, setSavedDecks] = useState<SavedDeckRecord[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (showSavedDecksModal) {
-      fetchDecks();
-    }
-  }, [showSavedDecksModal]);
-
   const fetchDecks = async () => {
     setLoading(true);
     try {
@@ -40,6 +34,13 @@ export default function SavedDecksModal() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (showSavedDecksModal) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchDecks();
+    }
+  }, [showSavedDecksModal]);
 
   const deleteDeck = async (id: string) => {
     if (!confirm('Hapus deck ini dari koleksi?')) return;

@@ -1,6 +1,13 @@
+export interface SimulationCard {
+  id?: string;
+  name?: string;
+  rarity?: string;
+  [key: string]: unknown;
+}
+
 export interface SimulationConfig {
   iterations: number;
-  myDeck: any[];
+  myDeck: SimulationCard[];
   enemyDeckType?: string;
 }
 

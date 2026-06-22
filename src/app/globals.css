@@ -527,6 +527,7 @@ h1, h2, h3, h4, h5, h6 {
 .modal-deck-strategy {
   color: var(--text-secondary);
   line-height: 1.6;
+  white-space: pre-wrap;
 }
 
 .modal-sim-btn {
