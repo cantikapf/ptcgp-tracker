@@ -20,7 +20,16 @@ async function seed() {
   const mineRaw = JSON.parse(fs.readFileSync('data/raw/mine.json', 'utf-8'));
 
   const allCards = cardDataRaw.cards || cardDataRaw.data?.cards || {};
-  const userCards = mineRaw.data?.cards || [];
+  let userCards = [];
+  if (Array.isArray(mineRaw)) {
+    userCards = mineRaw;
+  } else if (Array.isArray(mineRaw.data?.cards)) {
+    userCards = mineRaw.data.cards;
+  } else if (Array.isArray(mineRaw.cards)) {
+    userCards = mineRaw.cards;
+  } else if (Array.isArray(mineRaw.data)) {
+    userCards = mineRaw.data;
+  }
 
   const quantities = {};
   const lastReceivedAt = {};
