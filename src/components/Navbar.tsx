@@ -7,6 +7,7 @@ import { useDeckTracker } from '@/context/DeckTrackerContext';
 export default function Navbar() {
   const {
     setShowAiModal,
+    setShowSavedDecksModal,
     handleSyncMeta,
     isSyncingMeta,
     handleSync,

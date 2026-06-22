@@ -6,7 +6,6 @@ import Navbar from '@/components/Navbar';
 import SyncErrorBanner from '@/components/SyncErrorBanner';
 import MetaDecksShowcase from '@/components/MetaDecksShowcase';
 import CollectionGrid from '@/components/CollectionGrid';
-import MetaDecksModal from '@/components/modals/MetaDecksModal';
 import AiDeckBuilderModal from '@/components/modals/AiDeckBuilderModal';
 import SavedDecksModal from '@/components/modals/SavedDecksModal';
 import CardDetailModal from '@/components/modals/CardDetailModal';
@@ -25,7 +24,6 @@ export default function Home() {
         <AiDeckBuilderModal />
         <CardDetailModal />
         <MetaDeckDetailModal />
-        <MetaDecksModal />
         <SavedDecksModal />
       </main>
     </DeckTrackerProvider>
