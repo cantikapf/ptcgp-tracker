@@ -62,12 +62,9 @@ export async function POST(request: Request) {
     }
 
     const cardsContext = ownedCards.map(c => {
-      let context = `[${c.id}] ${c.name} (Type: ${c.cardType}) - Max Copies: ${c.quantity}`;
-      if (c.stage && c.stage !== 'Basic' && c.stage !== 'One' && c.stage !== 'Two') {
-         context += ` - Stage: ${c.stage} (Evolves from ${c.evolvesFrom || 'Unknown'})`;
-      } else if (c.stage) {
-         if (c.evolvesFrom) context += ` - Stage: ${c.stage} (Evolves from ${c.evolvesFrom})`;
-         else context += ` - Stage: Basic`;
+      let context = `- ${c.name} (Type: ${c.cardType}, Max Owned: ${c.quantity})`;
+      if (c.stage === 'Stage 1' || c.stage === 'Stage 2' || c.stage === 'One' || c.stage === 'Two') {
+         context += ` [Evolves from ${c.evolvesFrom}]`;
       }
       return context;
     }).join('\n');
@@ -92,11 +89,11 @@ Your task is to build a competitive deck based on the user's request, but YOU MU
 
 EXPECTED JSON FORMAT:
 {
-  "thoughtProcess": "string (Explain your step-by-step reasoning for choosing the primary type, ensuring complete evolution lines, and balancing the Pokemon/Trainer ratio before listing the cards)",
-  "deckName": "string (A catchy name for the deck)",
-  "strategy": "string (A paragraph explaining how to play the deck)",
+  "thoughtProcess": "string (Explain your reasoning)",
+  "deckName": "string",
+  "strategy": "string",
   "cards": [
-    { "id": "card_id_string", "quantity": number (MUST be 1 or 2) }
+    { "name": "card_name_string", "quantity": number (MUST be 1 or 2) }
   ]
 }
 
@@ -193,18 +190,68 @@ ${cardsContext}
 
     const deckData = JSON.parse(cleanJson);
 
-    // Final Validation
+    // Final Validation and mapping names to UUIDs
     let totalCards = 0;
+    const finalCards: Array<{id: string, quantity: number}> = [];
+    
     if (Array.isArray(deckData.cards)) {
-        deckData.cards.forEach((c: { quantity: number }) => {
-            // Programmatic safeguard against AI hallucinating quantity > 2
-            if (c.quantity > 2) c.quantity = 2;
-            totalCards += c.quantity;
+        deckData.cards.forEach((c: { id?: string, name?: string, quantity: number }) => {
+            const identifier = (c.name || c.id || '').toLowerCase();
+            const realCard = ownedCards.find(oc => oc.name.toLowerCase() === identifier || oc.id.toLowerCase() === identifier);
+            
+            if (realCard) {
+                let qty = c.quantity;
+                if (qty > 2) qty = 2;
+                
+                // Enforce ownership limits strictly
+                const allowedQty = Math.min(qty, realCard.quantity, 2);
+                if (allowedQty > 0) {
+                    const roomLeft = 20 - totalCards;
+                    if (roomLeft <= 0) return;
+                    
+                    const qtyToAdd = Math.min(allowedQty, roomLeft);
+                    finalCards.push({ id: realCard.id, quantity: qtyToAdd });
+                    totalCards += qtyToAdd;
+                }
+            }
         });
     }
+    
+    deckData.cards = finalCards;
 
-    if (totalCards !== 20) {
-        deckData.strategy += '\n\n(Note: The AI failed to generate exactly 20 cards. It generated ' + totalCards + ' cards. You might need to manually adjust this deck.)';
+    if (totalCards < 20) {
+        const missingCards = 20 - totalCards;
+        const deckTypes = [...new Set(finalCards.map(c => {
+            const oc = ownedCards.find(o => o.id === c.id);
+            return oc ? oc.cardType : null;
+        }).filter(t => t && t !== 'Trainer' && t !== 'Colorless'))];
+        const primaryType = deckTypes[0] || 'Water';
+
+        for (const owned of ownedCards) {
+            if (totalCards >= 20) break;
+            
+            const inDeck = finalCards.find(c => c.id === owned.id);
+            const currentQty = inDeck ? inDeck.quantity : 0;
+            const maxAllowed = Math.min(2, owned.quantity);
+            
+            if (currentQty < maxAllowed) {
+                if (owned.cardType === primaryType || owned.cardType === 'Colorless' || owned.cardType === 'Trainer') {
+                    const qtyToAdd = Math.min(maxAllowed - currentQty, 20 - totalCards);
+                    if (qtyToAdd > 0) {
+                        if (inDeck) {
+                            inDeck.quantity += qtyToAdd;
+                        } else {
+                            finalCards.push({ id: owned.id, quantity: qtyToAdd });
+                        }
+                        totalCards += qtyToAdd;
+                    }
+                }
+            }
+        }
+        
+        deckData.strategy += '\\n\\n(Auto-Fill Activated: The AI tried to use cards you do not own, leaving the deck with missing slots. I automatically filled the remaining ' + missingCards + ' slots with your owned cards to make it a valid 20-card deck!)';
+    } else if (totalCards > 20) {
+        deckData.strategy += '\\n\\n(Note: The AI generated more than 20 cards. The deck was truncated to 20 cards.)';
     }
 
     const deckId = randomUUID();
