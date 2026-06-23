@@ -3,7 +3,7 @@ import path from 'path';
 
 async function downloadAll() {
   const cardData = JSON.parse(fs.readFileSync('data/raw/card-data.json', 'utf-8'));
-  const allCards = cardData.cards || cardData.data?.cards || [];
+  const allCards = Array.isArray(cardData) ? cardData : (cardData.cards || cardData.data?.cards || []);
   
   const destDir = 'public/images/cards';
   if (!fs.existsSync(destDir)) {

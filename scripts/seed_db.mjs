@@ -19,7 +19,7 @@ async function seed() {
   const cardDataRaw = JSON.parse(fs.readFileSync('data/raw/card-data.json', 'utf-8'));
   const mineRaw = JSON.parse(fs.readFileSync('data/raw/mine.json', 'utf-8'));
 
-  const allCards = cardDataRaw.cards || cardDataRaw.data?.cards || {};
+  const allCards = Array.isArray(cardDataRaw) ? cardDataRaw : (cardDataRaw.cards || cardDataRaw.data?.cards || []);
   let userCards = [];
   if (Array.isArray(mineRaw)) {
     userCards = mineRaw;
