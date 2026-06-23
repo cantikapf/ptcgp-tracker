@@ -22,10 +22,9 @@ async function downloadAll() {
     const batch = allCards.slice(i, i + BATCH_SIZE);
     
     const promises = batch.map(async (card) => {
-      if (!card.slug) return;
+      if (!card.image) return;
       
-      const fileExt = card.illustrationUrl?.endsWith('.png') ? '.png' : '.webp';
-      const destPath = path.join(destDir, `${card.slug}${fileExt}`);
+      const destPath = path.join(destDir, card.image);
       
       // Skip if already exists
       if (fs.existsSync(destPath) && fs.statSync(destPath).size > 0) {
@@ -33,10 +32,7 @@ async function downloadAll() {
         return;
       }
 
-      let sourceUrl = card.illustrationUrl;
-      if (!sourceUrl) {
-        sourceUrl = `https://assets.pokemon-zone.com/game-assets/CardPreviews/c${card.cardId}.webp`;
-      }
+      const sourceUrl = `https://assets.pokemon-zone.com/game-assets/CardPreviews/${card.image}`;
 
       try {
         const res = await fetch(sourceUrl, {

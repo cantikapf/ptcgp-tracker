@@ -52,19 +52,31 @@ async function seed() {
     if (Array.isArray(allCards)) {
         card = entry;
         id = card.id || card.cardId;
+        if (!id && card.image) {
+            const match = card.image.match(/c((PK|TR)_[0-9]+_[0-9]+_[0-9]+)/);
+            if (match) id = match[1];
+        }
     } else {
         id = entry[0];
         card = entry[1];
     }
     
-    const name = card.name || (card.slug ? card.slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : id);
+    // Generate slug from name, set, and number if not present
+    let slug = card.slug;
+    if (!slug) {
+        const safeName = (card.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const safeSet = (card.set || '').toLowerCase();
+        slug = `${safeName}-${safeSet}-${card.number}`;
+    }
+
+    const name = card.name || (slug ? slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : id);
     const qty = quantities[id] || 0;
     
-    let imageUrl = card.illustrationUrl || card.image;
-    
-    // Switch to local images since TCGDEX is missing many expansions
-    const fileExt = imageUrl && imageUrl.endsWith('.png') ? '.png' : '.webp';
-    imageUrl = `/images/cards/${card.slug}${fileExt}`;
+    let imageUrl = `/images/cards/${card.image}`;
+    if (!card.image) {
+        const fileExt = card.illustrationUrl && card.illustrationUrl.endsWith('.png') ? '.png' : '.webp';
+        imageUrl = `/images/cards/${slug}${fileExt}`;
+    }
     
     let cardType = 'Colorless';
     let stage = null;
@@ -97,6 +109,16 @@ async function seed() {
     } else if (card.trainer) {
       cardType = card.trainer.trainerTypeLabel || card.trainer.trainerType || 'Trainer';
       rules = card.description || card.trainer.description || null;
+    } else if (card.type) {
+      // Fallback for new flibustier dist/cards.extra.json format
+      if (card.type === 'pokemon') {
+          cardType = card.element ? card.element.charAt(0).toUpperCase() + card.element.slice(1) : 'Colorless';
+          stage = card.stage === 'basic' ? 'Basic' : `Stage ${card.stage}`;
+          hp = card.health || null;
+          evolvesFrom = card.evolvesFrom || null;
+      } else {
+          cardType = 'Trainer';
+      }
     }
 
     const lra = lastReceivedAt[id] || null;
@@ -105,10 +127,10 @@ async function seed() {
         batch.push({
           id,
           name,
-          slug: card.slug || '',
-          expansionId: card.expansionId || '',
-          expansionName: card.expansionName || '',
-          pokedexNumber: card.pokedexNumber || card.collectionNumber || 0,
+          slug,
+          expansionId: card.expansionId || card.set || '',
+          expansionName: card.expansionName || card.set || '',
+          pokedexNumber: card.pokedexNumber || card.collectionNumber || card.number || 0,
           quantity: qty,
           imageUrl,
           cardType,
