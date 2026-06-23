@@ -12,6 +12,17 @@ echo.
 
 call npm run update-db
 
+if %errorlevel% neq 0 (
+    echo.
+    echo ===================================================
+    echo GAGAL: Update database bermasalah.
+    echo Proses upload ke GitHub dibatalkan untuk keamanan.
+    echo ===================================================
+    echo.
+    pause
+    exit /b %errorlevel%
+)
+
 echo.
 echo ===================================================
 echo Mengunggah (Push) gambar baru ke GitHub dan Vercel...

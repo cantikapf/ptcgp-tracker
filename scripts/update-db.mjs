@@ -35,8 +35,10 @@ https.get(cardDataUrl, (res) => {
       console.log('   git push origin main');
     } catch (err) {
       console.error('❌ An error occurred during the update process:', err.message);
+      process.exit(1);
     }
   });
 }).on('error', (err) => {
   console.error('❌ Failed to fetch card-data.json:', err.message);
+  process.exit(1);
 });
