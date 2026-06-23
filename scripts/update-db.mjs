@@ -5,7 +5,7 @@ import https from 'https';
 
 console.log('🌟 Starting Database & Image Update Process...');
 
-const cardDataUrl = 'https://raw.githubusercontent.com/flibustier/pokemon-tcg-pocket-database/refs/heads/main/data/cards.json';
+const cardDataUrl = 'https://raw.githubusercontent.com/flibustier/pokemon-tcg-pocket-database/refs/heads/main/dist/cards.json';
 const destPath = path.resolve(process.cwd(), 'data/raw/card-data.json');
 
 // Ensure directory exists
