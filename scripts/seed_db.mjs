@@ -19,6 +19,22 @@ async function seed() {
   const cardDataRaw = JSON.parse(fs.readFileSync('data/raw/card-data.json', 'utf-8'));
   const mineRaw = JSON.parse(fs.readFileSync('data/raw/mine.json', 'utf-8'));
 
+  let setsData = {};
+  try {
+      if (fs.existsSync('data/raw/sets.json')) {
+          const rawSets = JSON.parse(fs.readFileSync('data/raw/sets.json', 'utf-8'));
+          Object.values(rawSets).forEach(group => {
+              if (Array.isArray(group)) {
+                  group.forEach(set => {
+                     setsData[set.code] = set.name?.en || set.code;
+                  });
+              }
+          });
+      }
+  } catch (e) {
+      console.warn("Could not load sets.json, expansion names will fallback to codes.");
+  }
+
   const allCards = Array.isArray(cardDataRaw) ? cardDataRaw : (cardDataRaw.cards || cardDataRaw.data?.cards || []);
   let userCards = [];
   if (Array.isArray(mineRaw)) {
@@ -129,7 +145,7 @@ async function seed() {
           name,
           slug,
           expansionId: card.expansionId || card.set || '',
-          expansionName: card.expansionName || card.set || '',
+          expansionName: card.expansionName || setsData[card.set] || card.set || '',
           pokedexNumber: card.pokedexNumber || card.collectionNumber || card.number || 0,
           quantity: qty,
           imageUrl,
