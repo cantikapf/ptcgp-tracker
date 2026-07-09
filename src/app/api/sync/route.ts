@@ -169,6 +169,13 @@ export async function POST(request: Request) {
     }
 
     let updatedCount = 0;
+
+    // Snapshot old quantities BEFORE mutating, so we can detect newly obtained cards
+    const prevQuantityMap: Record<string, number> = {};
+    for (const card of allCards) {
+      prevQuantityMap[card.id] = (card.quantity as number) || 0;
+    }
+
     for(const card of allCards) {
       card.quantity = quantities[card.id] || 0;
     }
@@ -277,6 +284,11 @@ export async function POST(request: Request) {
           lastReceivedAt: null
         };
         
+        // New cards (not previously in DB) always count as newly obtained if quantity > 0
+        if ((quantities[id] || 0) > 0) {
+          prevQuantityMap[id] = 0;
+        }
+
         allCards.push(newDbCard);
       }
       
@@ -285,14 +297,41 @@ export async function POST(request: Request) {
       for (const missingId of missingCardIds) {
         if (!newlyAddedIds.has(missingId)) {
           console.warn(`Could not fetch metadata for new card ${missingId}. Creating minimal entry.`);
-          allCards.push({
+          const fallbackCard = {
             id: missingId,
             name: `Unknown Card (${missingId})`,
             quantity: quantities[missingId] || 0,
             imageUrl: null,
             cardType: 'Unknown'
-          } as any);
+          } as any;
+          if ((quantities[missingId] || 0) > 0) {
+            prevQuantityMap[missingId] = 0;
+          }
+          allCards.push(fallbackCard);
         }
+      }
+    }
+
+    // Detect newly obtained cards: cards whose quantity went from 0 → >0
+    const newlyObtainedCards: Array<{
+      id: string;
+      name: string;
+      quantity: number;
+      imageUrl: string | null;
+      expansionName: string;
+    }> = [];
+
+    for (const card of allCards) {
+      const prevQty = prevQuantityMap[card.id] ?? 0;
+      const newQty = (card.quantity as number) || 0;
+      if (prevQty === 0 && newQty > 0) {
+        newlyObtainedCards.push({
+          id: card.id,
+          name: String(card.name || card.id),
+          quantity: newQty,
+          imageUrl: (card.imageUrl as string | null) ?? null,
+          expansionName: String(card.expansionName || ''),
+        });
       }
     }
 
@@ -303,7 +342,7 @@ export async function POST(request: Request) {
       updatedCount += chunk.length;
     }
 
-    return NextResponse.json({ success: true, updated: updatedCount });
+    return NextResponse.json({ success: true, updated: updatedCount, newCards: newlyObtainedCards });
 
   } catch (error) {
     console.error('Sync error:', error);

@@ -25,6 +25,14 @@ export interface CardData {
   release_date?: string | null;
 }
 
+export interface SyncNewCard {
+  id: string;
+  name: string;
+  quantity: number;
+  imageUrl: string | null;
+  expansionName: string;
+}
+
 export interface Matchup {
   opponent: string;
   win_probability: number;
@@ -80,6 +88,11 @@ export interface DeckTrackerContextType {
   sortBy: string;
   setSortBy: (sort: string) => void;
   handleSync: () => Promise<void>;
+
+  // Sync result popup
+  syncNewCards: SyncNewCard[] | null;
+  showSyncResult: boolean;
+  setShowSyncResult: (show: boolean) => void;
 
   // Meta States
   topDecks: TopDeck[];
@@ -149,6 +162,10 @@ export function DeckTrackerProvider({ children }: { children: ReactNode }) {
   const [selectedCard, setSelectedCard] = useState<CardData | null>(null);
   const [sortBy, setSortBy] = useState('collection_asc');
 
+  // Sync result popup
+  const [syncNewCards, setSyncNewCards] = useState<SyncNewCard[] | null>(null);
+  const [showSyncResult, setShowSyncResult] = useState(false);
+
   const fetchCollection = async () => {
     try {
       const res = await fetch('/api/cards');
@@ -198,6 +215,10 @@ export function DeckTrackerProvider({ children }: { children: ReactNode }) {
       const now = new Date().toLocaleString('id-ID');
       setLastSyncData(now);
       localStorage.setItem('lastSyncData', now);
+
+      // Show sync result popup with newly obtained cards
+      setSyncNewCards(data.newCards || []);
+      setShowSyncResult(true);
     } catch (error) {
       setSyncError(error instanceof Error ? error.message : String(error));
     } finally {
@@ -318,6 +339,9 @@ export function DeckTrackerProvider({ children }: { children: ReactNode }) {
         sortBy,
         setSortBy,
         handleSync,
+        syncNewCards,
+        showSyncResult,
+        setShowSyncResult,
         topDecks,
         metaLastSync,
         isSyncingMeta,
