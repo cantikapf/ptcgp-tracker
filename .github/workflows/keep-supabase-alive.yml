@@ -1,0 +1,27 @@
+name: Keep Supabase Alive
+
+# Runs every 3 days at midnight UTC to prevent Supabase free-tier pausing
+on:
+  schedule:
+    - cron: '0 0 */3 * *'   # Every 3 days
+  workflow_dispatch:          # Allow manual trigger from GitHub UI
+
+jobs:
+  ping:
+    name: Ping Supabase
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          echo "Pinging Supabase to keep project active..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/cards?select=id&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
+          echo "HTTP Status: $STATUS"
+          if [ "$STATUS" = "200" ] || [ "$STATUS" = "206" ]; then
+            echo "✅ Supabase is alive and responding!"
+          else
+            echo "⚠️ Unexpected status: $STATUS — project might need manual restore."
+            exit 1
+          fi
