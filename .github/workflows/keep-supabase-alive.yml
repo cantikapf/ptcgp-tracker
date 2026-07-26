@@ -1,27 +1,63 @@
 name: Keep Supabase Alive
 
-# Runs every 3 days at midnight UTC to prevent Supabase free-tier pausing
+# Runs daily at midnight UTC to prevent Supabase free-tier pausing (7-day inactivity limit)
 on:
   schedule:
-    - cron: '0 0 */3 * *'   # Every 3 days
-  workflow_dispatch:          # Allow manual trigger from GitHub UI
+    - cron: '0 0 * * *'       # Every day at midnight UTC
+  workflow_dispatch:            # Allow manual trigger from GitHub UI
 
 jobs:
   ping:
     name: Ping Supabase
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Supabase REST API
+      - name: Ping Supabase Database
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          echo "Pinging Supabase to keep project active..."
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            "${{ secrets.SUPABASE_URL }}/rest/v1/cards?select=id&limit=1" \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
-          echo "HTTP Status: $STATUS"
-          if [ "$STATUS" = "200" ] || [ "$STATUS" = "206" ]; then
-            echo "✅ Supabase is alive and responding!"
+          echo "🏓 Pinging Supabase to keep project active..."
+          echo "   URL: ${SUPABASE_URL}/rest/v1/..."
+          echo ""
+
+          # Validate secrets are configured
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "❌ FATAL: GitHub Secrets SUPABASE_URL or SUPABASE_ANON_KEY are not set!"
+            echo "   Go to: Settings → Secrets and variables → Actions → New repository secret"
+            exit 1
+          fi
+
+          # Step 1: Perform an actual SELECT query (this is what Supabase counts as "activity")
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            "${SUPABASE_URL}/rest/v1/cards?select=id,name&limit=1" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
+
+          # Split response body and HTTP status code
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n 1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "   HTTP Status: $HTTP_CODE"
+          echo "   Response Body: $BODY"
+          echo ""
+
+          # Step 2: Validate the response is actually from Supabase (not a Cloudflare error page)
+          if [ "$HTTP_CODE" -eq 200 ] 2>/dev/null; then
+            # Check that body contains valid JSON with card data (not an error page)
+            if echo "$BODY" | grep -q '"id"'; then
+              echo "✅ Supabase is alive! Database responded with valid card data."
+            else
+              echo "⚠️ HTTP 200 but response doesn't look like card data."
+              echo "   This might mean the project is paused or the table is empty."
+              echo "   Body: $BODY"
+              exit 1
+            fi
+          elif [ "$HTTP_CODE" -eq 0 ] 2>/dev/null || [ -z "$HTTP_CODE" ]; then
+            echo "❌ FAILED: Could not connect to Supabase at all (DNS/network error)."
+            echo "   The project is likely PAUSED. Go to https://supabase.com/dashboard to restore it."
+            exit 1
           else
-            echo "⚠️ Unexpected status: $STATUS — project might need manual restore."
+            echo "❌ FAILED: Unexpected HTTP status $HTTP_CODE."
+            echo "   The project might be paused or misconfigured."
             exit 1
           fi
