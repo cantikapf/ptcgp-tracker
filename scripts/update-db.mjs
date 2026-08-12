@@ -41,10 +41,13 @@ async function updateDatabase() {
     console.log('\n3️⃣ Injecting new cards and local image URLs into Supabase database...');
     execSync('node scripts/seed_db.mjs', { stdio: 'inherit' });
     
-    console.log('\n🎉 ALL DONE! Your database and local images are fully up to date!');
+    console.log('\n4️⃣ Scraping latest Meta Tier Decks from Limitless...');
+    execSync('node scripts/scrapeLimitless.mjs', { stdio: 'inherit' });
+    
+    console.log('\n🎉 ALL DONE! Your database, local images, and meta decks are fully up to date!');
     console.log('\n👉 NEXT STEP: Run these commands in your terminal to publish the updates:');
     console.log('   git add .');
-    console.log('   git commit -m "chore: update database and download new local images"');
+    console.log('   git commit -m "chore: update database, download images, and sync meta decks"');
     console.log('   git push origin main');
   } catch (err) {
     console.error('❌ An error occurred during the update process:', err.message);
