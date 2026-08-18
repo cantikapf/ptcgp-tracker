@@ -1,9 +1,9 @@
 name: Keep Supabase Alive
 
-# Runs daily at midnight UTC to prevent Supabase free-tier pausing (7-day inactivity limit)
+# Runs twice a day (every 12 hours) to prevent Supabase free-tier pausing (7-day inactivity limit)
 on:
   schedule:
-    - cron: '0 0 * * *'       # Every day at midnight UTC
+    - cron: '0 0,12 * * *'       # Every day at midnight and noon UTC
   workflow_dispatch:            # Allow manual trigger from GitHub UI
 
 jobs:
@@ -28,10 +28,12 @@ jobs:
           fi
 
           # Step 1: Perform an actual SELECT query (this is what Supabase counts as "activity")
+          # Added Cache-Control header to ensure the request is not cached by Cloudflare/CDN
           RESPONSE=$(curl -s -w "\n%{http_code}" \
             "${SUPABASE_URL}/rest/v1/cards?select=id,name&limit=1" \
             -H "apikey: ${SUPABASE_ANON_KEY}" \
-            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            -H "Cache-Control: no-cache")
 
           # Split response body and HTTP status code
           HTTP_CODE=$(echo "$RESPONSE" | tail -n 1)
