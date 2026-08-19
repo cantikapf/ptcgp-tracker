@@ -234,10 +234,11 @@ export default function AiDeckBuilderModal() {
               <h4 className="modal-card-list-title">Card List:</h4>
               <div className="deck-builder-card-grid">
                 {generatedDeck.cards.map((c: GeneratedCard, idx: number) => {
+                  const normalizeName = (n: string) => (n || '').replace(/[’']/g, '').toLowerCase();
                   const matchString = (c.id || '').toLowerCase();
                   const fullCard = cards.find(oc => oc.id.toLowerCase() === matchString) || 
-                                   cards.find(oc => oc.name.toLowerCase() === matchString) ||
-                                   cards.find(oc => oc.name.toLowerCase() === (c.name || '').toLowerCase());
+                                   cards.find(oc => normalizeName(oc.name) === matchString) ||
+                                   cards.find(oc => normalizeName(oc.name) === normalizeName(c.name));
                   
                   let imgUrl = fullCard?.imageUrl;
                   if (!imgUrl || imgUrl === '') {

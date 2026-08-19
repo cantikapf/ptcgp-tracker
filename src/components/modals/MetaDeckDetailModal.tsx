@@ -52,7 +52,8 @@ export default function MetaDeckDetailModal() {
               
               return Object.entries(reqCards).map(([cardName, reqQty], idx) => {
                 // Find all variants of this card the user owns and sum their quantities
-                const userVariants = cards.filter(c => c.name === cardName);
+                const normalizeName = (n: string) => (n || '').replace(/[’']/g, '').toLowerCase();
+                const userVariants = cards.filter(c => normalizeName(c.name) === normalizeName(cardName));
                 const userQty = userVariants.reduce((sum, c) => sum + c.quantity, 0);
                 const missingQty = Math.max(0, reqQty - userQty);
                 const isMissing = missingQty > 0;
