@@ -7,6 +7,7 @@ export async function GET() {
     const { data: decks, error } = await supabase
       .from('saved_decks')
       .select('*')
+      .neq('id', '__heartbeat__')
       .order('createdAt', { ascending: false });
 
     if (error) throw error;
