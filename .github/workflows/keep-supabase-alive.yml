@@ -60,13 +60,11 @@ jobs:
           echo ""
 
           # ---------------------------------------------------------------------------
-          # Step 2: Dynamic Cache-Busted SELECT Read Query
-          # Adding a nano-timestamp (_t) query param guarantees that neither Cloudflare
-          # nor any intermediate proxy serves a cached response.
+          # Step 2: Database READ Check
           # ---------------------------------------------------------------------------
-          echo "🔍 [2/2] Performing database READ with dynamic cache-buster..."
+          echo "🔍 [2/2] Performing database READ verification..."
           READ_RESPONSE=$(curl -s -w "\n%{http_code}" \
-            "${SUPABASE_URL}/rest/v1/cards?select=id,name&limit=1&_t=$(date +%s%N)" \
+            "${SUPABASE_URL}/rest/v1/cards?select=id,name&limit=1" \
             -H "apikey: ${SUPABASE_ANON_KEY}" \
             -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
             -H "Cache-Control: no-cache, no-store")
